@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Baby Hanuman cartoon">
+  <rect width="320" height="240" rx="30" fill="#ffe7cf"/>
+  <circle cx="160" cy="112" r="60" fill="#ffd6a5"/>
+  <ellipse cx="160" cy="188" rx="76" ry="34" fill="#ffb703"/>
+  <circle cx="140" cy="110" r="6" fill="#5b3a29"/>
+  <circle cx="180" cy="110" r="6" fill="#5b3a29"/>
+  <ellipse cx="160" cy="125" rx="18" ry="14" fill="#fff4e5"/>
+  <path d="M145 136c9 10 21 10 30 0" stroke="#5b3a29" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <circle cx="116" cy="106" r="16" fill="#ffd6a5"/>
+  <circle cx="204" cy="106" r="16" fill="#ffd6a5"/>
+  <path d="M106 88c10-18 24-26 42-22" stroke="#ef476f" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M214 157c26 2 38 24 30 42" stroke="#8d5524" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <circle cx="244" cy="199" r="9" fill="#ef476f"/>
+</svg>

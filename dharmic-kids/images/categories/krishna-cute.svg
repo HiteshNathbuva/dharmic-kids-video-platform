@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Cute little Krishna cartoon">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d6f4ff"/>
+      <stop offset="1" stop-color="#bce4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="240" rx="30" fill="url(#bg)"/>
+  <circle cx="160" cy="112" r="58" fill="#79c7ff"/>
+  <ellipse cx="160" cy="186" rx="70" ry="36" fill="#ffd166"/>
+  <circle cx="140" cy="108" r="6" fill="#2e3a7e"/>
+  <circle cx="180" cy="108" r="6" fill="#2e3a7e"/>
+  <path d="M142 128c10 12 26 12 36 0" stroke="#2e3a7e" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M118 76c18-20 60-20 84 0" stroke="#1f2a5e" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M188 58c18-8 34 4 36 22-14-8-27-5-36 2" fill="#35a853"/>
+  <circle cx="198" cy="61" r="5" fill="#2b6cb0"/>
+  <rect x="114" y="156" width="92" height="14" rx="7" fill="#f28ab2"/>
+  <circle cx="220" cy="158" r="16" fill="#fff7e6"/>
+  <path d="M212 158h16" stroke="#f4a261" stroke-width="4"/>
+</svg>

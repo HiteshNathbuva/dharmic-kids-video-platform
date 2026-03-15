@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Krishna and Arjuna cartoon">
+  <rect width="320" height="240" rx="30" fill="#dde7ff"/>
+  <circle cx="118" cy="112" r="42" fill="#7ec8ff"/>
+  <circle cx="202" cy="112" r="42" fill="#ffd6a5"/>
+  <ellipse cx="160" cy="188" rx="90" ry="34" fill="#ffcb77"/>
+  <circle cx="104" cy="110" r="5" fill="#2f3f88"/>
+  <circle cx="132" cy="110" r="5" fill="#2f3f88"/>
+  <path d="M106 126c7 7 17 7 24 0" stroke="#2f3f88" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <circle cx="188" cy="110" r="5" fill="#5c3d2e"/>
+  <circle cx="216" cy="110" r="5" fill="#5c3d2e"/>
+  <path d="M190 126c7 7 17 7 24 0" stroke="#5c3d2e" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M100 78c16-18 36-18 52 0" stroke="#35a853" stroke-width="7" fill="none"/>
+  <path d="M230 88c18 8 20 30 4 42" stroke="#8d5524" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <circle cx="238" cy="94" r="8" fill="#ef476f"/>
+</svg>

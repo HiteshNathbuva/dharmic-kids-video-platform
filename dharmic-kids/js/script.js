@@ -1,15 +1,45 @@
 /*
   Shared data + helpers for Dharmic Kids pages.
   This script controls category rendering, video cards, search, theme toggling,
-  page-to-page video loading, and basic scroll reveal animations.
+  page-to-page video loading, and scroll reveal animations.
 */
 
 const categories = [
-  { id: "ramayana", name: "Ramayana Stories", icon: "🏹", thumb: "images/thumbnails/ramayana.svg" },
-  { id: "mahabharata", name: "Mahabharata Stories", icon: "⚔️", thumb: "images/thumbnails/mahabharata.svg" },
-  { id: "krishna", name: "Krishna Stories", icon: "🦚", thumb: "images/thumbnails/krishna.svg" },
-  { id: "hanuman", name: "Hanuman Stories", icon: "🐒", thumb: "images/thumbnails/hanuman.svg" },
-  { id: "moral", name: "Moral Stories", icon: "🌟", thumb: "images/thumbnails/moral.svg" }
+  {
+    id: "krishna",
+    name: "Krishna Stories",
+    icon: "🦚",
+    thumb: "images/thumbnails/krishna.svg",
+    illustration: "images/categories/krishna-cute.svg"
+  },
+  {
+    id: "hanuman",
+    name: "Hanuman Stories",
+    icon: "🐒",
+    thumb: "images/thumbnails/hanuman.svg",
+    illustration: "images/categories/hanuman-baby.svg"
+  },
+  {
+    id: "ramayana",
+    name: "Ramayana Stories",
+    icon: "🏹",
+    thumb: "images/thumbnails/ramayana.svg",
+    illustration: "images/categories/ram-sita.svg"
+  },
+  {
+    id: "mahabharata",
+    name: "Mahabharata Stories",
+    icon: "⚔️",
+    thumb: "images/thumbnails/mahabharata.svg",
+    illustration: "images/categories/krishna-arjuna.svg"
+  },
+  {
+    id: "moral",
+    name: "Moral Stories",
+    icon: "🌟",
+    thumb: "images/thumbnails/moral.svg",
+    illustration: "images/categories/moral-kids.svg"
+  }
 ];
 
 const videos = [
@@ -33,7 +63,7 @@ function setupThemeToggle() {
 
   if (storedTheme === "dark") {
     document.body.classList.add("dark");
-    toggle.textContent = "☀️";
+    if (toggle) toggle.textContent = "☀️";
   }
 
   toggle?.addEventListener("click", () => {
@@ -49,9 +79,9 @@ function buildCategoryCards() {
   if (!categoryGrid) return;
 
   categoryGrid.innerHTML = categories
-    .map((cat) => `
-      <article class="category-card reveal-on-scroll">
-        <div class="category-icon">${cat.icon}</div>
+    .map((cat, index) => `
+      <article class="category-card reveal-on-scroll" style="animation-delay:${index * 0.08}s">
+        <img class="category-illustration" src="${cat.illustration}" alt="${cat.name} cute cartoon illustration" loading="lazy" />
         <h3>${cat.name}</h3>
         <p>Animated dharmic stories for kids.</p>
       </article>
@@ -62,7 +92,7 @@ function buildCategoryCards() {
 function createVideoCard(video) {
   return `
     <article class="video-card reveal-on-scroll">
-      <img class="video-thumb" src="${video.thumb}" alt="${video.title} thumbnail" />
+      <img class="video-thumb" src="${video.thumb}" alt="${video.title} thumbnail" loading="lazy" />
       <div class="video-content">
         <h4>${video.title}</h4>
         <p>${video.desc}</p>
@@ -89,7 +119,7 @@ function buildCategoryVideoSections(filterText = "") {
     if (filteredVideos.length === 0) return;
 
     const section = document.createElement("section");
-    section.className = "section";
+    section.className = "section reveal-on-scroll";
     section.innerHTML = `
       <h2>${cat.icon} ${cat.name}</h2>
       <div class="video-grid">${filteredVideos.map(createVideoCard).join("")}</div>
@@ -122,6 +152,8 @@ function loadVideoPage() {
   const selected = videos.find((video) => video.id === videoId) || videos[0];
 
   const card = document.getElementById("videoPlayerCard");
+  if (!card) return;
+
   card.innerHTML = `
     <h1>${selected.title}</h1>
     <iframe src="https://www.youtube.com/embed/${selected.id}" title="${selected.title}" allowfullscreen></iframe>
@@ -129,10 +161,13 @@ function loadVideoPage() {
   `;
 
   const recommended = videos.filter((v) => v.id !== selected.id).slice(0, 5);
-  document.getElementById("recommendedList").innerHTML = recommended
+  const recommendedList = document.getElementById("recommendedList");
+  if (!recommendedList) return;
+
+  recommendedList.innerHTML = recommended
     .map((item) => `
       <a class="recommend-item" href="video.html?id=${item.id}">
-        <img src="${item.thumb}" alt="${item.title}" />
+        <img src="${item.thumb}" alt="${item.title}" loading="lazy" />
         <h4>${item.title}</h4>
       </a>
     `)
@@ -142,9 +177,13 @@ function loadVideoPage() {
 function setupSearch() {
   const searchInput = document.getElementById("searchInput");
   if (!searchInput) return;
-  searchInput.addEventListener("input", (e) => buildCategoryVideoSections(e.target.value));
+  searchInput.addEventListener("input", (event) => buildCategoryVideoSections(event.target.value));
 }
 
+/*
+  IntersectionObserver adds "visible" class when a section enters view.
+  This keeps the animation logic simple for beginners.
+*/
 function observeRevealItems() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -154,7 +193,7 @@ function observeRevealItems() {
     });
   }, { threshold: 0.2 });
 
-  document.querySelectorAll(".reveal-on-scroll").forEach((el) => observer.observe(el));
+  document.querySelectorAll(".reveal-on-scroll").forEach((element) => observer.observe(element));
 }
 
 function init() {
