@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Happy children cartoon illustration">
+  <rect width="320" height="240" rx="30" fill="#fff6b7"/>
+  <circle cx="90" cy="112" r="34" fill="#ffd6a5"/>
+  <circle cx="160" cy="106" r="38" fill="#ffe0bd"/>
+  <circle cx="230" cy="112" r="34" fill="#fdd9b5"/>
+  <ellipse cx="160" cy="188" rx="106" ry="34" fill="#9bf6ff"/>
+  <circle cx="80" cy="110" r="4" fill="#4a2f27"/>
+  <circle cx="100" cy="110" r="4" fill="#4a2f27"/>
+  <path d="M82 124c5 6 11 6 16 0" stroke="#4a2f27" stroke-width="3" fill="none"/>
+  <circle cx="148" cy="104" r="4" fill="#4a2f27"/>
+  <circle cx="172" cy="104" r="4" fill="#4a2f27"/>
+  <path d="M150 122c7 8 15 8 22 0" stroke="#4a2f27" stroke-width="3" fill="none"/>
+  <circle cx="220" cy="110" r="4" fill="#4a2f27"/>
+  <circle cx="240" cy="110" r="4" fill="#4a2f27"/>
+  <path d="M222 124c5 6 11 6 16 0" stroke="#4a2f27" stroke-width="3" fill="none"/>
+  <path d="M66 86c8-10 18-10 26 0" stroke="#ff7b89" stroke-width="6" fill="none"/>
+  <path d="M134 76c14-14 30-14 44 0" stroke="#6c63ff" stroke-width="6" fill="none"/>
+  <path d="M210 86c8-10 18-10 26 0" stroke="#ff9f1c" stroke-width="6" fill="none"/>
+</svg>
