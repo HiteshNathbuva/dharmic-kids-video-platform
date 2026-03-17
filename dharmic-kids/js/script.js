@@ -1,45 +1,16 @@
 /*
   Shared data + helpers for Dharmic Kids pages.
-  This script controls category rendering, video cards, search, theme toggling,
-  page-to-page video loading, and scroll reveal animations.
+  This script controls global background animation, category rendering,
+  Netflix-like video rows, storytelling voice control, quiz interactions,
+  theme toggling, and scroll reveal animations.
 */
 
 const categories = [
-  {
-    id: "krishna",
-    name: "Krishna Stories",
-    icon: "🦚",
-    thumb: "images/thumbnails/krishna.webp",
-    illustration: "images/thumbnails/krishna.webp"
-  },
-  {
-    id: "hanuman",
-    name: "Hanuman Stories",
-    icon: "🐒",
-    thumb: "images/thumbnails/ShriHanuman.webp",
-    illustration: "images/thumbnails/ShriHanuman.webp"
-  },
-  {
-    id: "ramayana",
-    name: "Ramayana Stories",
-    icon: "🏹",
-    thumb: "images/thumbnails/ShriRamayan.webp",
-    illustration: "images/thumbnails/ShriRamayan.webp"
-  },
-  {
-    id: "mahabharata",
-    name: "Mahabharata Stories",
-    icon: "⚔️",
-    thumb: "images/thumbnails/ShriMahabharat.webp",
-    illustration: "images/thumbnails/ShriMahabharat.webp"
-  },
-  {
-    id: "moral",
-    name: "Moral Stories",
-    icon: "🌟",
-    thumb: "images/thumbnails/Children.webp",
-    illustration: "images/thumbnails/Children.webp"
-  }
+  { id: "krishna", name: "Krishna Stories", icon: "🦚", thumb: "images/thumbnails/krishna.webp", illustration: "images/thumbnails/krishna.webp" },
+  { id: "hanuman", name: "Hanuman Stories", icon: "🐒", thumb: "images/thumbnails/ShriHanuman.webp", illustration: "images/thumbnails/ShriHanuman.webp" },
+  { id: "ramayana", name: "Ramayana Stories", icon: "🏹", thumb: "images/thumbnails/ShriRamayan.webp", illustration: "images/thumbnails/ShriRamayan.webp" },
+  { id: "mahabharata", name: "Mahabharata Stories", icon: "⚔️", thumb: "images/thumbnails/ShriMahabharat.webp", illustration: "images/thumbnails/ShriMahabharat.webp" },
+  { id: "moral", name: "Moral Stories", icon: "🌟", thumb: "images/thumbnails/Children.webp", illustration: "images/thumbnails/Children.webp" }
 ];
 
 const videos = [
@@ -55,7 +26,16 @@ const videos = [
   { id: "rj4X8mV8S5w", category: "moral", title: "Helping Friends", desc: "Why teamwork and compassion make us stronger.", thumb: "images/thumbnails/Children.webp" }
 ];
 
+const quizByVideo = {
+  default: [
+    { q: "What value did this story teach?", choices: ["Kindness", "Being rude", "Ignoring friends"], answer: 0 },
+    { q: "Who is a true hero?", choices: ["Someone who helps others", "Someone who lies", "Someone who is selfish"], answer: 0 },
+    { q: "What should we do after learning a good lesson?", choices: ["Practice it at home", "Forget it", "Make fun of it"], answer: 0 }
+  ]
+};
+
 const page = document.body.dataset.page;
+let activeUtterance = null;
 
 function setupThemeToggle() {
   const toggle = document.getElementById("themeToggle");
@@ -72,6 +52,90 @@ function setupThemeToggle() {
     localStorage.setItem("dharmic-theme", dark ? "dark" : "light");
     toggle.textContent = dark ? "☀️" : "🌙";
   });
+}
+
+function setupGlobalBackground() {
+  const scene = document.createElement("div");
+  scene.className = "bg-scene";
+  const sky = document.createElement("div");
+  sky.className = "floating-sky";
+  const canvas = document.createElement("canvas");
+  canvas.className = "particle-canvas";
+
+  document.body.prepend(canvas);
+  document.body.prepend(sky);
+  document.body.prepend(scene);
+
+  for (let i = 0; i < 7; i += 1) {
+    const cloud = document.createElement("span");
+    cloud.className = "float-cloud";
+    cloud.style.top = `${Math.random() * 90}%`;
+    cloud.style.left = `${Math.random() * 80 - 20}%`;
+    cloud.style.animationDuration = `${32 + Math.random() * 24}s`;
+    cloud.style.animationDelay = `${-Math.random() * 25}s`;
+    sky.appendChild(cloud);
+  }
+
+  const icons = ["✨", "⭐", "🌟"];
+  for (let i = 0; i < 18; i += 1) {
+    const star = document.createElement("span");
+    star.className = i % 2 === 0 ? "float-star" : "float-sparkle";
+    star.textContent = icons[i % icons.length];
+    star.style.top = `${Math.random() * 95}%`;
+    star.style.left = `${Math.random() * 100}%`;
+    star.style.animationDuration = `${18 + Math.random() * 20}s`;
+    star.style.animationDelay = `${-Math.random() * 15}s`;
+    sky.appendChild(star);
+  }
+
+  startParticles(canvas);
+}
+
+function startParticles(canvas) {
+  const ctx = canvas.getContext("2d");
+  const particles = [];
+
+  const resize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  for (let i = 0; i < 48; i += 1) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 2.4 + 0.8,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.24,
+      a: Math.random() * 0.7 + 0.25
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p) => {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.x < -20) p.x = canvas.width + 20;
+      if (p.x > canvas.width + 20) p.x = -20;
+      if (p.y < -20) p.y = canvas.height + 20;
+      if (p.y > canvas.height + 20) p.y = -20;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(189, 221, 255, ${p.a})`;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = "rgba(160, 213, 255, 0.8)";
+      ctx.fill();
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
 }
 
 function buildCategoryCards() {
@@ -110,19 +174,20 @@ function buildCategoryVideoSections(filterText = "") {
   container.innerHTML = "";
 
   categories.forEach((cat) => {
-    const filteredVideos = videos.filter((video) => {
-      const inCategory = video.category === cat.id;
-      const matchesSearch = video.title.toLowerCase().includes(query);
-      return inCategory && matchesSearch;
-    });
-
-    if (filteredVideos.length === 0) return;
+    const filteredVideos = videos.filter((video) => video.category === cat.id && video.title.toLowerCase().includes(query));
+    if (!filteredVideos.length) return;
 
     const section = document.createElement("section");
-    section.className = "section reveal-on-scroll";
+    section.className = "video-row-section reveal-on-scroll";
     section.innerHTML = `
-      <h2>${cat.icon} ${cat.name}</h2>
-      <div class="video-grid">${filteredVideos.map(createVideoCard).join("")}</div>
+      <div class="video-row-header">
+        <h2>${cat.icon} ${cat.name}</h2>
+      </div>
+      <div class="video-row-shell">
+        <button class="row-btn prev" aria-label="Scroll left">◀</button>
+        <div class="video-row">${filteredVideos.map(createVideoCard).join("")}</div>
+        <button class="row-btn next" aria-label="Scroll right">▶</button>
+      </div>
     `;
     container.appendChild(section);
   });
@@ -132,7 +197,35 @@ function buildCategoryVideoSections(filterText = "") {
   }
 
   attachWatchButtonHandlers();
+  attachRowScrollHandlers();
+  setupCardTiltEffects();
   observeRevealItems();
+}
+
+function attachRowScrollHandlers() {
+  document.querySelectorAll(".video-row-shell").forEach((shell) => {
+    const row = shell.querySelector(".video-row");
+    const prev = shell.querySelector(".prev");
+    const next = shell.querySelector(".next");
+
+    prev?.addEventListener("click", () => row.scrollBy({ left: -340, behavior: "smooth" }));
+    next?.addEventListener("click", () => row.scrollBy({ left: 340, behavior: "smooth" }));
+  });
+}
+
+function setupCardTiltEffects() {
+  document.querySelectorAll(".video-card").forEach((card) => {
+    card.addEventListener("mousemove", (event) => {
+      const rect = card.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width - 0.5;
+      const py = (event.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `perspective(600px) rotateY(${px * 6}deg) rotateX(${py * -6}deg) scale(1.04)`;
+    });
+
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "";
+    });
+  });
 }
 
 function attachWatchButtonHandlers() {
@@ -142,6 +235,28 @@ function attachWatchButtonHandlers() {
       window.location.href = `video.html?id=${videoId}`;
     });
   });
+}
+
+function speakStory(selected) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(`${selected.title}. ${selected.desc}`);
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find((voice) => /female|child|kids/i.test(voice.name)) || voices[0];
+  if (preferred) utterance.voice = preferred;
+  utterance.rate = 0.95;
+  utterance.pitch = 1.12;
+  activeUtterance = utterance;
+
+  const status = document.getElementById("speechStatus");
+  if (status) status.textContent = "Reading story...";
+
+  utterance.onend = () => {
+    if (status) status.textContent = "Finished reading. Great listening! 🎉";
+  };
+
+  window.speechSynthesis.speak(utterance);
 }
 
 function loadVideoPage() {
@@ -158,7 +273,25 @@ function loadVideoPage() {
     <h1>${selected.title}</h1>
     <iframe src="https://www.youtube.com/embed/${selected.id}" title="${selected.title}" allowfullscreen></iframe>
     <p>${selected.desc}</p>
+    <div class="story-controls">
+      <button id="listenStoryBtn" class="story-btn">🔊 Listen Story</button>
+      <button id="pauseStoryBtn" class="story-btn secondary">⏸ Pause / Resume</button>
+    </div>
+    <p id="speechStatus">Tap listen to hear this story aloud.</p>
+    <section id="quizContainer" class="quiz-box"></section>
   `;
+
+  document.getElementById("listenStoryBtn")?.addEventListener("click", () => speakStory(selected));
+  document.getElementById("pauseStoryBtn")?.addEventListener("click", () => {
+    if (!("speechSynthesis" in window) || !activeUtterance) return;
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    } else {
+      window.speechSynthesis.pause();
+    }
+  });
+
+  renderQuiz(selected.id);
 
   const recommended = videos.filter((v) => v.id !== selected.id).slice(0, 5);
   const recommendedList = document.getElementById("recommendedList");
@@ -174,34 +307,66 @@ function loadVideoPage() {
     .join("");
 }
 
+function renderQuiz(videoId) {
+  const quizContainer = document.getElementById("quizContainer");
+  if (!quizContainer) return;
+
+  const questions = quizByVideo[videoId] || quizByVideo.default;
+  quizContainer.innerHTML = `
+    <h3>🎮 Story Quiz Time</h3>
+    ${questions.map((question, qIndex) => `
+      <article class="quiz-item">
+        <p>${qIndex + 1}. ${question.q}</p>
+        <div class="quiz-choices">
+          ${question.choices.map((choice, cIndex) => `<button class="choice-btn" data-q="${qIndex}" data-choice="${cIndex}">${choice}</button>`).join("")}
+        </div>
+      </article>
+    `).join("")}
+    <p id="quizFeedback" class="quiz-feedback">Choose answers to see your score.</p>
+  `;
+
+  quizContainer.querySelectorAll(".choice-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const qIndex = Number(btn.dataset.q);
+      const picked = Number(btn.dataset.choice);
+      const parent = btn.closest(".quiz-item");
+      parent?.querySelectorAll(".choice-btn").forEach((choice) => choice.classList.remove("correct", "wrong"));
+
+      const correct = questions[qIndex].answer === picked;
+      btn.classList.add(correct ? "correct" : "wrong");
+
+      const feedback = document.getElementById("quizFeedback");
+      if (feedback) {
+        feedback.textContent = correct ? "🎉 Correct! Awesome job, little learner!" : "😄 Nice try! Give it one more shot.";
+      }
+    });
+  });
+}
+
 function setupSearch() {
   const searchInput = document.getElementById("searchInput");
   if (!searchInput) return;
   searchInput.addEventListener("input", (event) => buildCategoryVideoSections(event.target.value));
 }
 
-/*
-  IntersectionObserver adds "visible" class when a section enters view.
-  This keeps the animation logic simple for beginners.
-*/
 function observeRevealItems() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("visible");
-      }
+      if (entry.isIntersecting) entry.target.classList.add("visible");
     });
-  }, { threshold: 0.2 });
+  }, { threshold: 0.18 });
 
   document.querySelectorAll(".reveal-on-scroll").forEach((element) => observer.observe(element));
 }
 
 function init() {
+  setupGlobalBackground();
   setupThemeToggle();
   buildCategoryCards();
   buildCategoryVideoSections();
   setupSearch();
   loadVideoPage();
+  setupCardTiltEffects();
   observeRevealItems();
 }
 
