@@ -50,6 +50,7 @@ const protectedPages = new Set(["home", "categories", "video", "about", "profile
 const FAVORITES_KEY = "favorites";
 const HISTORY_KEY = "watchHistory";
 const QUIZ_PROGRESS_KEY = "quizProgress";
+const CHAT_HISTORY_KEY = "krishnaGuideChatHistory";
 let activeUtterance = null;
 
 function safeReadArray(key) {
@@ -777,6 +778,184 @@ function observeRevealItems() {
   document.querySelectorAll(".reveal-on-scroll").forEach((element) => observer.observe(element));
 }
 
+function setupKrishnaGuideChatbot() {
+  const knowledgeBase = {
+    kindness: "Dear child, Krishna teaches us that kindness is like a sweet flower. When we speak gently and help others, hearts become happy.",
+    honesty: "Truth is very important, dear child. Krishna teaches us to speak honestly because truth makes us brave and trusted.",
+    courage: "Let me guide you: courage means doing the right thing even when you feel a little fear. Krishna helped Arjuna stand strong.",
+    friendship: "A good friend cares, listens, and shares. Krishna loved his friends in Vrindavan and always protected them.",
+    dharma: "Krishna teaches that dharma means doing what is right, kind, and fair in each moment.",
+    "good habits": "Good habits make your day bright: wake up on time, speak politely, study with focus, and help at home.",
+    respect: "Respect means using kind words and honoring parents, teachers, elders, friends, and nature.",
+    "helping others": "When we help others, we serve Krishna with love. Even small help, like sharing or comforting a friend, is very special."
+  };
+
+  const storySnippets = {
+    courage: "In the Mahabharata, Arjuna felt confused before battle. Krishna guided him with calm wisdom to do his duty with courage.",
+    friendship: "Krishna played with his friends in Gokul and cared for them with joy, showing what loving friendship looks like.",
+    "helping others": "Krishna often protected and supported his people. He teaches us that helping others with a pure heart is true strength.",
+    dharma: "Krishna's guidance to Arjuna reminds us: choose what is right and kind, even when choices feel difficult.",
+    honesty: "Krishna reminds us that truth keeps our mind peaceful and our relationships strong."
+  };
+
+  const intentKeywords = {
+    kindness: ["kind", "kindness", "gentle", "care", "compassion", "help"],
+    honesty: ["truth", "honest", "honesty", "lie", "lying", "true"],
+    courage: ["fear", "afraid", "brave", "courage", "strong", "confidence"],
+    friendship: ["friend", "friendship", "buddy", "together", "share"],
+    dharma: ["dharma", "duty", "right thing", "correct path"],
+    "good habits": ["habit", "routine", "discipline", "study", "daily"],
+    respect: ["respect", "elders", "teacher", "parents", "manners"],
+    "helping others": ["helping", "serve", "support", "charity", "others"]
+  };
+
+  const quickQuestions = [
+    "What is kindness?",
+    "Why should we tell truth?",
+    "How to be brave?",
+    "What is dharma?"
+  ];
+
+  const host = document.createElement("section");
+  host.className = "krishna-chatbot";
+  host.innerHTML = `
+    <button class="krishna-chat-toggle" aria-label="Open Krishna guide chat" type="button">🧑‍🦱🎵</button>
+    <section class="krishna-chat-window" aria-hidden="true">
+      <header class="krishna-chat-header">
+        <h3>Krishna Guide</h3>
+        <button class="krishna-chat-close" type="button" aria-label="Close chat">✕</button>
+      </header>
+      <section class="krishna-quick-actions">
+        ${quickQuestions.map((question) => `<button class="krishna-quick-btn" type="button">${question}</button>`).join("")}
+      </section>
+      <section class="krishna-chat-messages" aria-live="polite"></section>
+      <form class="krishna-chat-form">
+        <input class="krishna-chat-input" type="text" maxlength="240" placeholder="Ask Krishna Guide..." />
+        <button class="krishna-chat-send" type="submit">Send</button>
+      </form>
+    </section>
+  `;
+  document.body.appendChild(host);
+
+  const toggleButton = host.querySelector(".krishna-chat-toggle");
+  const closeButton = host.querySelector(".krishna-chat-close");
+  const chatWindow = host.querySelector(".krishna-chat-window");
+  const form = host.querySelector(".krishna-chat-form");
+  const input = host.querySelector(".krishna-chat-input");
+  const messagesContainer = host.querySelector(".krishna-chat-messages");
+  const quickActionButtons = host.querySelectorAll(".krishna-quick-btn");
+
+  const addMessage = (role, text, shouldSave = true) => {
+    const bubble = document.createElement("article");
+    bubble.className = `chat-bubble ${role}`;
+    bubble.textContent = text;
+    messagesContainer.appendChild(bubble);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    if (shouldSave) {
+      const history = safeReadArray(CHAT_HISTORY_KEY);
+      history.push({ role, text });
+      safeWriteArray(CHAT_HISTORY_KEY, history.slice(-30));
+    }
+  };
+
+  const addTypingIndicator = () => {
+    const typing = document.createElement("article");
+    typing.className = "chat-bubble krishna typing";
+    typing.textContent = "Krishna is typing...";
+    messagesContainer.appendChild(typing);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return typing;
+  };
+
+  const getIntent = (message) => {
+    const normalized = message.toLowerCase();
+    return Object.keys(intentKeywords).find((topic) => intentKeywords[topic].some((keyword) => normalized.includes(keyword)));
+  };
+
+  const getReply = (message) => {
+    const topic = getIntent(message);
+    if (!topic) {
+      return "I am here to guide you, dear child. Ask me about kindness, courage, or good habits.";
+    }
+
+    const baseResponse = knowledgeBase[topic];
+    const storyResponse = storySnippets[topic];
+    return storyResponse ? `${baseResponse} ${storyResponse}` : baseResponse;
+  };
+
+  const typeReply = (fullText) => {
+    const typingBubble = addTypingIndicator();
+    setTimeout(() => {
+      typingBubble.remove();
+      const bubble = document.createElement("article");
+      bubble.className = "chat-bubble krishna";
+      messagesContainer.appendChild(bubble);
+
+      let index = 0;
+      const timer = setInterval(() => {
+        bubble.textContent = fullText.slice(0, index);
+        index += 1;
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        if (index > fullText.length) {
+          clearInterval(timer);
+          const history = safeReadArray(CHAT_HISTORY_KEY);
+          history.push({ role: "krishna", text: fullText });
+          safeWriteArray(CHAT_HISTORY_KEY, history.slice(-30));
+        }
+      }, 16);
+    }, 550);
+  };
+
+  const sendUserMessage = (message) => {
+    const trimmed = message.trim();
+    if (!trimmed) return;
+    addMessage("user", trimmed);
+    typeReply(getReply(trimmed));
+  };
+
+  const openChat = () => {
+    chatWindow.classList.add("open");
+    chatWindow.setAttribute("aria-hidden", "false");
+    input.focus();
+  };
+
+  const closeChat = () => {
+    chatWindow.classList.remove("open");
+    chatWindow.setAttribute("aria-hidden", "true");
+  };
+
+  toggleButton?.addEventListener("click", () => {
+    if (chatWindow.classList.contains("open")) closeChat();
+    else openChat();
+  });
+
+  closeButton?.addEventListener("click", closeChat);
+
+  quickActionButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      input.value = button.textContent || "";
+      input.focus();
+    });
+  });
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const message = input.value;
+    input.value = "";
+    sendUserMessage(message);
+  });
+
+  const storedHistory = safeReadArray(CHAT_HISTORY_KEY);
+  if (storedHistory.length) {
+    storedHistory.forEach((item) => {
+      if (item?.role && item?.text) addMessage(item.role, item.text, false);
+    });
+  } else {
+    addMessage("krishna", "Dear child, I am your Krishna Guide. Ask me about kindness, truth, courage, or dharma.", true);
+  }
+}
+
 function init() {
   if (!guardRoutes()) return;
   if (!ensureUniqueVideos()) console.warn("Video IDs must be unique.");
@@ -796,6 +975,7 @@ function init() {
   setupCardTiltEffects();
   attachFavoriteButtonHandlers();
   observeRevealItems();
+  setupKrishnaGuideChatbot();
 }
 
 init();
