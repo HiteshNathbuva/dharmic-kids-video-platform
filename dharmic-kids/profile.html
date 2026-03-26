@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dharmic Kids | Profile</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="profile">
+  <header class="navbar">
+    <a href="index.html" class="logo">🪔 Dharmic Kids</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="categories.html">Categories</a>
+      <a href="about.html">About</a>
+      <a href="profile.html" class="active">Profile</a>
+    </nav>
+    <button id="logoutBtn" class="nav-logout">Logout</button>
+  </header>
+
+  <main class="section profile-page">
+    <section class="profile-card reveal-on-scroll">
+      <h1>My Profile 🌟</h1>
+      <div id="profileUserInfo" class="profile-user-info"></div>
+    </section>
+
+    <section class="profile-section reveal-on-scroll">
+      <div class="section-header">
+        <h2>Favorite Videos ❤️</h2>
+      </div>
+      <div id="favoritesGrid" class="profile-grid"></div>
+    </section>
+
+    <section class="profile-section reveal-on-scroll">
+      <div class="section-header">
+        <h2>Watch History / Progress ⏱️</h2>
+      </div>
+      <div id="progressGrid" class="profile-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Your dharmic journey, all in one place ✨</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
