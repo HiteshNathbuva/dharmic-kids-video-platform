@@ -12,6 +12,7 @@
     <nav>
       <a href="index.html">Home</a>
       <a href="categories.html">Categories</a>
+      <a href="quiz.html">Quizzes</a>
       <a href="about.html">About</a>
       <a href="profile.html" class="active">Profile</a>
     </nav>
@@ -22,6 +23,14 @@
     <section class="profile-card reveal-on-scroll">
       <h1>My Profile 🌟</h1>
       <div id="profileUserInfo" class="profile-user-info"></div>
+      <button id="editProfileBtn" class="story-btn">Edit Profile</button>
+    </section>
+
+    <section class="profile-section reveal-on-scroll">
+      <div class="section-header">
+        <h2>Progress Dashboard 📊</h2>
+      </div>
+      <div id="statsGrid" class="profile-grid"></div>
     </section>
 
     <section class="profile-section reveal-on-scroll">
@@ -34,10 +43,27 @@
     <section class="profile-section reveal-on-scroll">
       <div class="section-header">
         <h2>Watch History / Progress ⏱️</h2>
+        <button id="clearHistoryBtn" class="story-btn secondary">Clear All History</button>
       </div>
       <div id="progressGrid" class="profile-grid"></div>
     </section>
   </main>
+
+  <div id="editProfileModal" class="modal-backdrop" aria-hidden="true">
+    <section class="modal-card">
+      <h2>Edit Profile</h2>
+      <form id="editProfileForm" class="auth-form" novalidate>
+        <label for="editProfileName">Name</label>
+        <input id="editProfileName" type="text" required />
+        <label for="editProfileEmail">Email</label>
+        <input id="editProfileEmail" type="email" required />
+        <div class="modal-actions">
+          <button type="submit" class="auth-btn">Save</button>
+          <button type="button" id="cancelEditProfileBtn" class="story-btn secondary">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </div>
 
   <footer>
     <p>Your dharmic journey, all in one place ✨</p>
