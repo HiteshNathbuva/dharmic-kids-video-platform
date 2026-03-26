@@ -1,8 +1,8 @@
 /*
   Shared data + helpers for Dharmic Kids pages.
-  This script controls global background animation, category rendering,
+  This script controls auth, global background animation, category rendering,
   Netflix-like video rows, storytelling voice control, quiz interactions,
-  theme toggling, and scroll reveal animations.
+  and scroll reveal animations.
 */
 
 const categories = [
@@ -35,22 +35,110 @@ const quizByVideo = {
 };
 
 const page = document.body.dataset.page;
+const protectedPages = new Set(["home", "categories", "video", "about"]);
 let activeUtterance = null;
 
-function setupThemeToggle() {
-  const toggle = document.getElementById("themeToggle");
-  const storedTheme = localStorage.getItem("dharmic-theme");
+function getStoredUser() {
+  try {
+    const userRaw = localStorage.getItem("dharmicUser");
+    return userRaw ? JSON.parse(userRaw) : null;
+  } catch {
+    return null;
+  }
+}
 
-  if (storedTheme === "dark") {
-    document.body.classList.add("dark");
-    if (toggle) toggle.textContent = "☀️";
+function showAuthMessage(message, type = "error") {
+  const authMessage = document.getElementById("authMessage");
+  if (!authMessage) return;
+  authMessage.textContent = message;
+  authMessage.classList.remove("success", "error");
+  authMessage.classList.add(type);
+}
+
+function guardRoutes() {
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  if (protectedPages.has(page) && !isLoggedIn) {
+    window.location.href = "login.html";
+    return false;
   }
 
-  toggle?.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    const dark = document.body.classList.contains("dark");
-    localStorage.setItem("dharmic-theme", dark ? "dark" : "light");
-    toggle.textContent = dark ? "☀️" : "🌙";
+  if ((page === "login" || page === "signup") && isLoggedIn) {
+    window.location.href = "index.html";
+    return false;
+  }
+
+  return true;
+}
+
+function setupSignupForm() {
+  const form = document.getElementById("signupForm");
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const name = document.getElementById("signupName")?.value.trim();
+    const email = document.getElementById("signupEmail")?.value.trim().toLowerCase();
+    const password = document.getElementById("signupPassword")?.value;
+    const confirmPassword = document.getElementById("signupConfirmPassword")?.value;
+
+    if (!name || !email || !password || !confirmPassword) {
+      showAuthMessage("Please fill all fields before signing up.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showAuthMessage("Passwords do not match. Please try again.");
+      return;
+    }
+
+    localStorage.setItem("dharmicUser", JSON.stringify({ name, email, password }));
+    showAuthMessage("Signup successful! Redirecting to login...", "success");
+
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 900);
+  });
+}
+
+function setupLoginForm() {
+  const form = document.getElementById("loginForm");
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const email = document.getElementById("loginEmail")?.value.trim().toLowerCase();
+    const password = document.getElementById("loginPassword")?.value;
+    const user = getStoredUser();
+
+    if (!email || !password) {
+      showAuthMessage("Please enter email and password.");
+      return;
+    }
+
+    if (!user || user.email !== email || user.password !== password) {
+      showAuthMessage("Invalid login details. Please check and try again.");
+      return;
+    }
+
+    localStorage.setItem("isLoggedIn", true);
+    showAuthMessage("Login successful! Welcome back 🌟", "success");
+
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 700);
+  });
+}
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) return;
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "login.html";
   });
 }
 
@@ -360,8 +448,12 @@ function observeRevealItems() {
 }
 
 function init() {
+  if (!guardRoutes()) return;
+
   setupGlobalBackground();
-  setupThemeToggle();
+  setupSignupForm();
+  setupLoginForm();
+  setupLogoutButton();
   buildCategoryCards();
   buildCategoryVideoSections();
   setupSearch();

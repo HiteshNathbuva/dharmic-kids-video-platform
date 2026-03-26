@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dharmic Kids | Sign Up</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="signup" class="auth-body">
+  <main class="auth-main">
+    <section class="auth-card auth-fade-in">
+      <h1>Create Account ✨</h1>
+      <p>Join Dharmic Kids and enjoy fun learning videos.</p>
+
+      <form id="signupForm" class="auth-form" novalidate>
+        <label for="signupName">Name</label>
+        <input id="signupName" name="name" type="text" placeholder="Your name" required />
+
+        <label for="signupEmail">Email</label>
+        <input id="signupEmail" name="email" type="email" placeholder="you@example.com" required />
+
+        <label for="signupPassword">Password</label>
+        <input id="signupPassword" name="password" type="password" placeholder="Create password" required />
+
+        <label for="signupConfirmPassword">Confirm Password</label>
+        <input id="signupConfirmPassword" name="confirmPassword" type="password" placeholder="Re-enter password" required />
+
+        <button type="submit" class="auth-btn">Sign Up</button>
+      </form>
+
+      <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+      <p class="auth-link-row">Already have an account? <a href="login.html">Login</a></p>
+    </section>
+  </main>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
