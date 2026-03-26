@@ -1,8 +1,7 @@
 /*
   Shared data + helpers for Dharmic Kids pages.
-  This script controls auth, global background animation, category rendering,
-  video interactions, storytelling voice control, quiz interactions,
-  local favorites/progress, profile dashboard, and scroll reveal animations.
+  This script controls auth, global animations, category rendering,
+  favorites, watch history, quizzes, profile dashboard, and interactions.
 */
 
 const categories = [
@@ -31,13 +30,26 @@ const quizByVideo = {
     { q: "What value did this story teach?", choices: ["Kindness", "Being rude", "Ignoring friends"], answer: 0 },
     { q: "Who is a true hero?", choices: ["Someone who helps others", "Someone who lies", "Someone who is selfish"], answer: 0 },
     { q: "What should we do after learning a good lesson?", choices: ["Practice it at home", "Forget it", "Make fun of it"], answer: 0 }
+  ],
+  "wUWhfHEA6RA": [
+    { q: "Who went to the forest with Rama?", choices: ["Sita and Lakshmana", "Only Hanuman", "Only Bharata"], answer: 0 },
+    { q: "What quality shines in this journey?", choices: ["Loyalty", "Anger", "Greed"], answer: 0 }
+  ],
+  "vEsw4xQ6-pw": [
+    { q: "Where did Hanuman find Sita?", choices: ["In Lanka", "In Ayodhya", "In Mathura"], answer: 0 },
+    { q: "Hanuman shows us to be...", choices: ["Brave and devoted", "Lazy", "Dishonest"], answer: 0 }
+  ],
+  "ZL8M4m6nR8Q": [
+    { q: "Little Krishna loved...", choices: ["Butter", "Stone", "Rain"], answer: 0 },
+    { q: "This story teaches joyful...", choices: ["Innocence", "Pride", "Fear"], answer: 0 }
   ]
 };
 
 const page = document.body.dataset.page;
-const protectedPages = new Set(["home", "categories", "video", "about", "profile"]);
+const protectedPages = new Set(["home", "categories", "video", "about", "profile", "quiz"]);
 const FAVORITES_KEY = "favorites";
-const PROGRESS_KEY = "progress";
+const HISTORY_KEY = "watchHistory";
+const QUIZ_PROGRESS_KEY = "quizProgress";
 let activeUtterance = null;
 
 function safeReadArray(key) {
@@ -54,17 +66,38 @@ function safeWriteArray(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-function getStoredUser() {
+function safeReadObject(key) {
   try {
-    const userRaw = localStorage.getItem("dharmicUser");
-    return userRaw ? JSON.parse(userRaw) : null;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
+function getStoredUser() {
+  return safeReadObject("dharmicUser");
+}
+
+function getVideoById(id) {
+  return videos.find((video) => video.id === id);
+}
+
+function ensureUniqueVideos() {
+  const seen = new Set();
+  return videos.every((video) => {
+    if (!video.id || seen.has(video.id)) return false;
+    seen.add(video.id);
+    return true;
+  });
+}
+
+function getFavorites() {
+  return safeReadArray(FAVORITES_KEY).filter((item) => item?.id && item?.title && item?.image);
+}
+
 function getFavoriteIds() {
-  return new Set(safeReadArray(FAVORITES_KEY).map((item) => item.id));
+  return new Set(getFavorites().map((item) => item.id));
 }
 
 function isFavorite(videoId) {
@@ -72,7 +105,9 @@ function isFavorite(videoId) {
 }
 
 function toggleFavorite(video) {
-  const favorites = safeReadArray(FAVORITES_KEY);
+  if (!video?.id) return false;
+
+  const favorites = getFavorites();
   const exists = favorites.some((item) => item.id === video.id);
 
   if (exists) {
@@ -90,27 +125,61 @@ function toggleFavorite(video) {
   return true;
 }
 
+function getWatchHistory() {
+  return safeReadArray(HISTORY_KEY).filter((item) => item?.id);
+}
+
 function markVideoWatched(video) {
-  const progress = safeReadArray(PROGRESS_KEY);
-  const existingIndex = progress.findIndex((item) => item.id === video.id);
+  if (!video?.id) return;
+
+  const history = getWatchHistory();
   const watchedEntry = {
     id: video.id,
     title: video.title,
-    watched: true,
+    image: video.thumb,
+    category: video.category,
     timestamp: new Date().toISOString()
   };
 
-  if (existingIndex >= 0) {
-    progress[existingIndex] = watchedEntry;
-  } else {
-    progress.push(watchedEntry);
-  }
-
-  safeWriteArray(PROGRESS_KEY, progress);
+  const next = [watchedEntry, ...history.filter((item) => item.id !== video.id)];
+  safeWriteArray(HISTORY_KEY, next);
 }
 
-function getVideoById(id) {
-  return videos.find((video) => video.id === id);
+function removeHistoryItem(videoId) {
+  const history = getWatchHistory().filter((item) => item.id !== videoId);
+  safeWriteArray(HISTORY_KEY, history);
+}
+
+function clearHistory() {
+  safeWriteArray(HISTORY_KEY, []);
+}
+
+function getQuizProgress() {
+  return safeReadArray(QUIZ_PROGRESS_KEY).filter((item) => item?.videoId);
+}
+
+function setQuizProgress(videoId, score, totalQuestions) {
+  const progress = getQuizProgress();
+  const nextEntry = {
+    videoId,
+    score,
+    totalQuestions,
+    completed: true,
+    updatedAt: new Date().toISOString()
+  };
+
+  const existingIndex = progress.findIndex((item) => item.videoId === videoId);
+  if (existingIndex >= 0) {
+    progress[existingIndex] = nextEntry;
+  } else {
+    progress.push(nextEntry);
+  }
+  safeWriteArray(QUIZ_PROGRESS_KEY, progress);
+}
+
+function formatCategory(categoryId) {
+  const found = categories.find((cat) => cat.id === categoryId);
+  return found ? found.name : "Dharmic Story";
 }
 
 function showAuthMessage(message, type = "error") {
@@ -137,34 +206,41 @@ function guardRoutes() {
   return true;
 }
 
+function setupActiveNavLinks() {
+  const navMap = {
+    home: "index.html",
+    categories: "categories.html",
+    video: "categories.html",
+    quiz: "quiz.html",
+    about: "about.html",
+    profile: "profile.html"
+  };
+  const activeHref = navMap[page];
+  if (!activeHref) return;
+
+  document.querySelectorAll(".navbar nav a").forEach((link) => {
+    const isActive = link.getAttribute("href") === activeHref;
+    link.classList.toggle("active", isActive);
+  });
+}
+
 function setupSignupForm() {
   const form = document.getElementById("signupForm");
   if (!form) return;
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-
     const name = document.getElementById("signupName")?.value.trim();
     const email = document.getElementById("signupEmail")?.value.trim().toLowerCase();
     const password = document.getElementById("signupPassword")?.value;
     const confirmPassword = document.getElementById("signupConfirmPassword")?.value;
 
-    if (!name || !email || !password || !confirmPassword) {
-      showAuthMessage("Please fill all fields before signing up.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      showAuthMessage("Passwords do not match. Please try again.");
-      return;
-    }
+    if (!name || !email || !password || !confirmPassword) return showAuthMessage("Please fill all fields before signing up.");
+    if (password !== confirmPassword) return showAuthMessage("Passwords do not match. Please try again.");
 
     localStorage.setItem("dharmicUser", JSON.stringify({ name, email, password }));
     showAuthMessage("Signup successful! Redirecting to login...", "success");
-
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 900);
+    setTimeout(() => { window.location.href = "login.html"; }, 900);
   });
 }
 
@@ -179,22 +255,12 @@ function setupLoginForm() {
     const password = document.getElementById("loginPassword")?.value;
     const user = getStoredUser();
 
-    if (!email || !password) {
-      showAuthMessage("Please enter email and password.");
-      return;
-    }
-
-    if (!user || user.email !== email || user.password !== password) {
-      showAuthMessage("Invalid login details. Please check and try again.");
-      return;
-    }
+    if (!email || !password) return showAuthMessage("Please enter email and password.");
+    if (!user || user.email !== email || user.password !== password) return showAuthMessage("Invalid login details. Please check and try again.");
 
     localStorage.setItem("isLoggedIn", true);
     showAuthMessage("Login successful! Welcome back 🌟", "success");
-
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 700);
+    setTimeout(() => { window.location.href = "index.html"; }, 700);
   });
 }
 
@@ -296,15 +362,13 @@ function buildCategoryCards() {
   const categoryGrid = document.getElementById("categoryGrid");
   if (!categoryGrid) return;
 
-  categoryGrid.innerHTML = categories
-    .map((cat, index) => `
-      <article class="category-card reveal-on-scroll" style="animation-delay:${index * 0.08}s">
-        <img class="category-illustration" src="${cat.illustration}" alt="${cat.name} cute cartoon illustration" loading="lazy" />
-        <h3>${cat.name}</h3>
-        <p>Animated dharmic stories for kids.</p>
-      </article>
-    `)
-    .join("");
+  categoryGrid.innerHTML = categories.map((cat, index) => `
+    <article class="category-card reveal-on-scroll" style="animation-delay:${index * 0.08}s">
+      <img class="category-illustration" src="${cat.illustration}" alt="${cat.name} cute cartoon illustration" loading="lazy" />
+      <h3>${cat.name}</h3>
+      <p>Animated dharmic stories for kids.</p>
+    </article>
+  `).join("");
 }
 
 function createVideoCard(video) {
@@ -348,9 +412,7 @@ function buildCategoryVideoSections(filterText = "") {
     container.appendChild(section);
   });
 
-  if (!container.children.length) {
-    container.innerHTML = `<p style="text-align:center;">No videos found. Try another search name.</p>`;
-  }
+  if (!container.children.length) container.innerHTML = `<p style="text-align:center;">No videos found. Try another search name.</p>`;
 
   attachWatchButtonHandlers();
   attachFavoriteButtonHandlers();
@@ -378,22 +440,23 @@ function setupCardTiltEffects() {
       const py = (event.clientY - rect.top) / rect.height - 0.5;
       card.style.transform = `perspective(600px) rotateY(${px * 6}deg) rotateX(${py * -6}deg) scale(1.04)`;
     });
-
-    card.addEventListener("mouseleave", () => {
-      card.style.transform = "";
-    });
+    card.addEventListener("mouseleave", () => { card.style.transform = ""; });
   });
 }
 
 function attachWatchButtonHandlers() {
   document.querySelectorAll(".watch-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const videoId = btn.dataset.videoId;
-      const selectedVideo = getVideoById(videoId);
+      const selectedVideo = getVideoById(btn.dataset.videoId);
       if (selectedVideo) markVideoWatched(selectedVideo);
-      window.location.href = `video.html?id=${videoId}`;
+      window.location.href = `video.html?id=${btn.dataset.videoId}`;
     });
   });
+}
+
+function animateHeart(button) {
+  button.classList.add("burst");
+  setTimeout(() => button.classList.remove("burst"), 300);
 }
 
 function attachFavoriteButtonHandlers() {
@@ -401,15 +464,11 @@ function attachFavoriteButtonHandlers() {
     btn.addEventListener("click", () => {
       const video = getVideoById(btn.dataset.favoriteId);
       if (!video) return;
-
       const isNowFavorite = toggleFavorite(video);
       btn.classList.toggle("is-favorite", isNowFavorite);
-      btn.classList.add("burst");
-      setTimeout(() => btn.classList.remove("burst"), 240);
+      animateHeart(btn);
 
-      if (page === "profile") {
-        renderProfileSections();
-      }
+      if (page === "profile") renderProfileSections();
     });
   });
 }
@@ -429,10 +488,7 @@ function speakStory(selected) {
   const status = document.getElementById("speechStatus");
   if (status) status.textContent = "Reading story...";
 
-  utterance.onend = () => {
-    if (status) status.textContent = "Finished reading. Great listening! 🎉";
-  };
-
+  utterance.onend = () => { if (status) status.textContent = "Finished reading. Great listening! 🎉"; };
   window.speechSynthesis.speak(utterance);
 }
 
@@ -441,7 +497,7 @@ function loadVideoPage() {
 
   const params = new URLSearchParams(window.location.search);
   const videoId = params.get("id") || videos[0].id;
-  const selected = videos.find((video) => video.id === videoId) || videos[0];
+  const selected = getVideoById(videoId) || videos[0];
 
   const card = document.getElementById("videoPlayerCard");
   if (!card) return;
@@ -456,7 +512,6 @@ function loadVideoPage() {
       <button class="story-btn favorite-story-btn ${isFavorite(selected.id) ? "is-favorite" : ""}" data-favorite-id="${selected.id}">❤️ Favorite</button>
     </div>
     <p id="speechStatus">Tap listen to hear this story aloud.</p>
-    <section id="quizContainer" class="quiz-box"></section>
   `;
 
   markVideoWatched(selected);
@@ -464,85 +519,142 @@ function loadVideoPage() {
   document.getElementById("listenStoryBtn")?.addEventListener("click", () => speakStory(selected));
   document.getElementById("pauseStoryBtn")?.addEventListener("click", () => {
     if (!("speechSynthesis" in window) || !activeUtterance) return;
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-    } else {
-      window.speechSynthesis.pause();
-    }
+    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    else window.speechSynthesis.pause();
   });
-
-  renderQuiz(selected.id);
 
   const recommended = videos.filter((v) => v.id !== selected.id).slice(0, 5);
   const recommendedList = document.getElementById("recommendedList");
   if (!recommendedList) return;
 
-  recommendedList.innerHTML = recommended
-    .map((item) => `
-      <article class="recommend-item">
-        <img src="${item.thumb}" alt="${item.title}" loading="lazy" />
-        <div>
-          <h4>${item.title}</h4>
-          <div class="recommend-actions">
-            <button class="watch-btn" data-video-id="${item.id}">▶ Watch</button>
-            <button class="favorite-btn ${isFavorite(item.id) ? "is-favorite" : ""}" data-favorite-id="${item.id}">❤️</button>
-          </div>
+  recommendedList.innerHTML = recommended.map((item) => `
+    <article class="recommend-item">
+      <img src="${item.thumb}" alt="${item.title}" loading="lazy" />
+      <div>
+        <h4>${item.title}</h4>
+        <div class="recommend-actions">
+          <button class="watch-btn" data-video-id="${item.id}">▶ Watch</button>
+          <button class="favorite-btn ${isFavorite(item.id) ? "is-favorite" : ""}" data-favorite-id="${item.id}">❤️</button>
         </div>
-      </article>
-    `)
-    .join("");
+      </div>
+    </article>
+  `).join("");
 
   attachWatchButtonHandlers();
   attachFavoriteButtonHandlers();
 }
 
-function renderQuiz(videoId) {
-  const quizContainer = document.getElementById("quizContainer");
-  if (!quizContainer) return;
+function getQuestionSet(videoId) {
+  return quizByVideo[videoId] || quizByVideo.default.slice(0, 3);
+}
 
-  const questions = quizByVideo[videoId] || quizByVideo.default;
-  quizContainer.innerHTML = `
-    <h3>🎮 Story Quiz Time</h3>
-    ${questions.map((question, qIndex) => `
-      <article class="quiz-item">
-        <p>${qIndex + 1}. ${question.q}</p>
-        <div class="quiz-choices">
-          ${question.choices.map((choice, cIndex) => `<button class="choice-btn" data-q="${qIndex}" data-choice="${cIndex}">${choice}</button>`).join("")}
-        </div>
+function renderQuizPage() {
+  if (page !== "quiz") return;
+  const quizGrid = document.getElementById("quizGrid");
+  if (!quizGrid) return;
+
+  const quizProgress = getQuizProgress();
+
+  quizGrid.innerHTML = videos.map((video) => {
+    const questions = getQuestionSet(video.id);
+    const progress = quizProgress.find((item) => item.videoId === video.id);
+
+    return `
+      <article class="quiz-box reveal-on-scroll" data-quiz-video-id="${video.id}">
+        <h3>${video.title}</h3>
+        <p class="quiz-subtext">${formatCategory(video.category)}</p>
+        ${questions.map((question, qIndex) => `
+          <article class="quiz-item" data-question-index="${qIndex}">
+            <p>${qIndex + 1}. ${question.q}</p>
+            <div class="quiz-choices">
+              ${question.choices.map((choice, cIndex) => `<button class="choice-btn" data-choice="${cIndex}">${choice}</button>`).join("")}
+            </div>
+          </article>
+        `).join("")}
+        <button class="story-btn submit-quiz-btn">Submit Quiz</button>
+        <p class="quiz-feedback">${progress?.completed ? `Last score: ${progress.score}/${progress.totalQuestions} 🎯` : "Choose one answer per question, then submit."}</p>
       </article>
-    `).join("")}
-    <p id="quizFeedback" class="quiz-feedback">Choose answers to see your score.</p>
-  `;
+    `;
+  }).join("");
 
-  quizContainer.querySelectorAll(".choice-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const qIndex = Number(btn.dataset.q);
-      const picked = Number(btn.dataset.choice);
-      const parent = btn.closest(".quiz-item");
-      parent?.querySelectorAll(".choice-btn").forEach((choice) => choice.classList.remove("correct", "wrong"));
+  quizGrid.querySelectorAll(".quiz-box").forEach((card) => {
+    card.querySelectorAll(".quiz-item").forEach((item) => {
+      item.querySelectorAll(".choice-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          item.querySelectorAll(".choice-btn").forEach((choice) => choice.classList.remove("selected"));
+          button.classList.add("selected");
+        });
+      });
+    });
 
-      const correct = questions[qIndex].answer === picked;
-      btn.classList.add(correct ? "correct" : "wrong");
+    card.querySelector(".submit-quiz-btn")?.addEventListener("click", () => {
+      const videoId = card.dataset.quizVideoId;
+      const questions = getQuestionSet(videoId);
+      let score = 0;
 
-      const feedback = document.getElementById("quizFeedback");
+      card.querySelectorAll(".quiz-item").forEach((item, qIndex) => {
+        const selectedButton = item.querySelector(".choice-btn.selected");
+        item.querySelectorAll(".choice-btn").forEach((choice, cIndex) => {
+          choice.classList.remove("correct", "wrong");
+          if (cIndex === questions[qIndex].answer) choice.classList.add("correct");
+        });
+
+        if (selectedButton && Number(selectedButton.dataset.choice) === questions[qIndex].answer) {
+          score += 1;
+        } else if (selectedButton) {
+          selectedButton.classList.add("wrong");
+        }
+      });
+
+      setQuizProgress(videoId, score, questions.length);
+      const feedback = card.querySelector(".quiz-feedback");
       if (feedback) {
-        feedback.textContent = correct ? "🎉 Correct! Awesome job, little learner!" : "😄 Nice try! Give it one more shot.";
+        feedback.textContent = score === questions.length
+          ? `🎉 Perfect! You scored ${score}/${questions.length}!`
+          : `😄 Great try! You scored ${score}/${questions.length}.`;
       }
     });
   });
+
+  observeRevealItems();
 }
 
-function formatCategory(categoryId) {
-  const found = categories.find((cat) => cat.id === categoryId);
-  return found ? found.name : "Dharmic Story";
+function animateCounter(element, target) {
+  const duration = 800;
+  const start = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    element.textContent = String(Math.round(target * progress));
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+function renderStats() {
+  const statsGrid = document.getElementById("statsGrid");
+  if (!statsGrid) return;
+
+  const watched = getWatchHistory().length;
+  const quizCompleted = getQuizProgress().filter((item) => item.completed).length;
+  const favorites = getFavorites().length;
+
+  statsGrid.innerHTML = `
+    <article class="video-card profile-video-card stat-card"><div class="video-content"><h4>🎬 Videos Watched</h4><p class="stat-number" data-target="${watched}">0</p></div></article>
+    <article class="video-card profile-video-card stat-card"><div class="video-content"><h4>🎮 Quizzes Completed</h4><p class="stat-number" data-target="${quizCompleted}">0</p></div></article>
+    <article class="video-card profile-video-card stat-card"><div class="video-content"><h4>❤️ Favorites Saved</h4><p class="stat-number" data-target="${favorites}">0</p></div></article>
+  `;
+
+  statsGrid.querySelectorAll(".stat-number").forEach((el) => animateCounter(el, Number(el.dataset.target || 0)));
 }
 
 function renderProfileSections() {
   if (page !== "profile") return;
 
   const user = getStoredUser();
-  const favorites = safeReadArray(FAVORITES_KEY);
-  const progress = safeReadArray(PROGRESS_KEY).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const favorites = getFavorites();
+  const history = getWatchHistory().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
   const info = document.getElementById("profileUserInfo");
   const favoritesGrid = document.getElementById("favoritesGrid");
@@ -568,22 +680,85 @@ function renderProfileSections() {
     `).join("")
     : '<p class="empty-state">No favorites yet ❤️</p>';
 
-  progressGrid.innerHTML = progress.length
-    ? progress.map((item) => `
+  progressGrid.innerHTML = history.length
+    ? history.map((item) => `
       <article class="video-card profile-video-card reveal-on-scroll">
         <div class="video-content">
           <h4>${item.title}</h4>
           <p>Watched on ${new Date(item.timestamp).toLocaleString()}</p>
           <span class="watched-label">Watched ✅</span>
-          <button class="watch-btn" data-video-id="${item.id}">▶ Watch Again</button>
+          <div class="inline-actions">
+            <button class="watch-btn" data-video-id="${item.id}">▶ Watch Again</button>
+            <button class="story-btn remove-history-btn" data-history-id="${item.id}">Remove</button>
+          </div>
         </div>
       </article>
     `).join("")
     : '<p class="empty-state">No videos watched yet 🎬</p>';
 
+  renderStats();
   attachWatchButtonHandlers();
   attachFavoriteButtonHandlers();
   observeRevealItems();
+}
+
+function setupProfileActions() {
+  if (page !== "profile") return;
+
+  const editBtn = document.getElementById("editProfileBtn");
+  const clearBtn = document.getElementById("clearHistoryBtn");
+  const progressGrid = document.getElementById("progressGrid");
+  const modal = document.getElementById("editProfileModal");
+  const form = document.getElementById("editProfileForm");
+  const cancelBtn = document.getElementById("cancelEditProfileBtn");
+  const nameInput = document.getElementById("editProfileName");
+  const emailInput = document.getElementById("editProfileEmail");
+
+  editBtn?.addEventListener("click", () => {
+    const user = getStoredUser() || {};
+    if (nameInput) nameInput.value = user.name || "";
+    if (emailInput) emailInput.value = user.email || "";
+    modal?.classList.add("visible");
+    modal?.setAttribute("aria-hidden", "false");
+  });
+
+  cancelBtn?.addEventListener("click", () => {
+    modal?.classList.remove("visible");
+    modal?.setAttribute("aria-hidden", "true");
+  });
+
+  modal?.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      modal.classList.remove("visible");
+      modal.setAttribute("aria-hidden", "true");
+    }
+  });
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const current = getStoredUser() || {};
+    const updated = {
+      ...current,
+      name: nameInput?.value.trim() || "Little Learner",
+      email: emailInput?.value.trim().toLowerCase() || ""
+    };
+    localStorage.setItem("dharmicUser", JSON.stringify(updated));
+    modal?.classList.remove("visible");
+    modal?.setAttribute("aria-hidden", "true");
+    renderProfileSections();
+  });
+
+  clearBtn?.addEventListener("click", () => {
+    clearHistory();
+    renderProfileSections();
+  });
+
+  progressGrid?.addEventListener("click", (event) => {
+    const button = event.target.closest(".remove-history-btn");
+    if (!button) return;
+    removeHistoryItem(button.dataset.historyId);
+    renderProfileSections();
+  });
 }
 
 function setupSearch() {
@@ -604,8 +779,10 @@ function observeRevealItems() {
 
 function init() {
   if (!guardRoutes()) return;
+  if (!ensureUniqueVideos()) console.warn("Video IDs must be unique.");
 
   setupGlobalBackground();
+  setupActiveNavLinks();
   setupSignupForm();
   setupLoginForm();
   setupLogoutButton();
@@ -613,7 +790,9 @@ function init() {
   buildCategoryVideoSections();
   setupSearch();
   loadVideoPage();
+  renderQuizPage();
   renderProfileSections();
+  setupProfileActions();
   setupCardTiltEffects();
   attachFavoriteButtonHandlers();
   observeRevealItems();
