@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dharmic Kids | Krishna AI Experience</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="krishna-ai">
+  <header class="navbar">
+    <a href="index.html" class="logo">🪔 Dharmic Kids</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="categories.html">Categories</a>
+      <a href="quiz.html">Quizzes</a>
+      <a href="about.html">About</a>
+      <a href="krishna-ai.html" class="active">Krishna AI</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+    <button id="logoutBtn" class="nav-logout">Logout</button>
+  </header>
+
+  <main>
+    <section class="hero krishna-ai-hero reveal-on-scroll">
+      <div class="krishna-ai-glow" aria-hidden="true"></div>
+      <div class="krishna-ai-feather" aria-hidden="true">🪶</div>
+      <div class="krishna-ai-stars" aria-hidden="true">✨ ✨ ⭐ ✨</div>
+      <div class="hero-content">
+        <h1>Krishna AI Experience</h1>
+        <p>A peaceful space for wise guidance, kind words, and calm moments with Krishna.</p>
+      </div>
+      <div class="hero-icons" aria-hidden="true">
+        <span>🦚</span><span>🕉️</span><span>🌿</span><span>✨</span>
+      </div>
+    </section>
+
+    <section class="section reveal-on-scroll">
+      <div class="krishna-ai-layout">
+        <article class="krishna-ai-chat-card">
+          <div class="section-header">
+            <h2>Talk with Krishna</h2>
+          </div>
+
+          <div id="topicButtons" class="krishna-topic-grid" aria-label="Krishna guidance topics">
+            <button type="button" class="krishna-topic-btn active" data-topic="learning">🧠 Learning Dharma</button>
+            <button type="button" class="krishna-topic-btn" data-topic="anxiety">😌 Reduce Anxiety</button>
+            <button type="button" class="krishna-topic-btn" data-topic="courage">💪 Courage & Confidence</button>
+            <button type="button" class="krishna-topic-btn" data-topic="kindness">❤️ Kindness & Friendship</button>
+            <button type="button" class="krishna-topic-btn" data-topic="lessons">📖 Life Lessons</button>
+            <button type="button" class="krishna-topic-btn" data-topic="sadness">😔 Sadness / Emotional Help</button>
+          </div>
+
+          <div id="krishnaChatMessages" class="krishna-chat-messages-panel" aria-live="polite"></div>
+
+          <div id="krishnaQuickPrompts" class="krishna-quick-prompts">
+            <button type="button" class="krishna-prompt-btn">I feel scared</button>
+            <button type="button" class="krishna-prompt-btn">How to be brave?</button>
+            <button type="button" class="krishna-prompt-btn">Why should I tell truth?</button>
+            <button type="button" class="krishna-prompt-btn">How to help others?</button>
+          </div>
+
+          <form id="krishnaChatForm" class="krishna-chat-compose">
+            <input id="krishnaChatInput" type="text" maxlength="260" placeholder="Share your thoughts with Krishna..." />
+            <button id="voiceInputBtn" type="button" class="story-btn" aria-label="Use voice input">🎤</button>
+            <button type="submit" class="auth-btn">Send</button>
+          </form>
+        </article>
+
+        <aside class="krishna-ai-side-stack">
+          <article class="about-block krishna-listen-card">
+            <h3>Voice Blessing 🔊</h3>
+            <p>Press listen to hear Krishna's last guidance in a gentle voice.</p>
+            <button id="listenResponseBtn" type="button" class="story-btn">Listen</button>
+            <p id="voiceStatus" class="muted-note">Ready when you are, little one.</p>
+          </article>
+
+          <article class="about-block relax-card">
+            <h3>Relax with Krishna 🌿</h3>
+            <div id="breathingCircle" class="breathing-circle" aria-hidden="true"></div>
+            <p id="breathingText">Take a deep breath in... and breathe out slowly.</p>
+            <button id="startCalmBtn" type="button" class="story-btn">Start Calm Breath</button>
+          </article>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Made with ❤️ for little learners of Dharma.</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
