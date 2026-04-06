@@ -1,4 +1,4 @@
 // Paste your Groq API key here
 window.KRISHNA_AI_CONFIG = {
-  GROQ_API_KEY: ""
+  GROQ_API_KEY: "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"
 };
