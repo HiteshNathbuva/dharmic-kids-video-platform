@@ -794,99 +794,56 @@ function setupKrishnaAIExperience() {
   const breathingCircle = document.getElementById("breathingCircle");
   const breathingText = document.getElementById("breathingText");
   const startCalmBtn = document.getElementById("startCalmBtn");
+  const saveChatBtn = document.getElementById("saveChatBtn");
+  const clearChatBtn = document.getElementById("clearChatBtn");
+  const savedChatsList = document.getElementById("savedChatsList");
 
-  if (!messagesContainer || !chatForm || !chatInput) return;
+  if (!messagesContainer || !chatForm || !chatInput || !savedChatsList) return;
 
-  const knowledgeBase = {
-    learning: {
-      intro: "Let us learn with joy, dear child.",
-      defaults: [
-        "Dharma means choosing truth, kindness, and responsibility in everyday moments.",
-        "You can practice dharma by respecting elders, speaking gently, and helping friends.",
-        "Krishna teaches that a pure heart and good actions make life bright."
-      ],
-      keywords: {
-        truth: "Truth keeps your mind light and your heart peaceful. Even if it feels hard, honesty is strength.",
-        respect: "Respect is dharma in action: kind words, listening carefully, and showing gratitude.",
-        help: "Helping others is seva. Small acts like sharing toys or comforting a friend are powerful."
-      }
-    },
-    anxiety: {
-      intro: "I am with you. Let us calm your heart slowly.",
-      defaults: [
-        "Place one hand on your heart. Breathe in for 4 counts, hold 2, and breathe out for 6.",
-        "You are safe in this moment. Imagine Krishna's flute filling your heart with soft light.",
-        "When worry comes, whisper: 'I am brave, I am loved, I am guided.'"
-      ],
-      keywords: {
-        scared: "It is okay to feel scared. Take a deep breath in... now breathe out slowly. Krishna stays beside you.",
-        exam: "Before study or exams, take three calm breaths and say: 'I will try my best with faith and focus.'",
-        sleep: "For bedtime worries, breathe slowly and imagine stars blessing your room with peace."
-      }
-    },
-    courage: {
-      intro: "True courage is a calm heart doing what is right.",
-      defaults: [
-        "Krishna guided Arjuna to stand for truth with clarity and compassion.",
-        "Courage grows when you take one small brave step at a time.",
-        "Confidence means saying: 'I can learn, I can improve, I can try again.'"
-      ],
-      keywords: {
-        fear: "Bravery is not zero fear. Bravery is doing the right thing even when fear is present.",
-        speak: "If you are afraid to speak, start with one sentence, a steady breath, and gentle eye contact.",
-        fail: "Every mistake is a lesson. Krishna smiles when you keep trying with sincerity."
-      }
-    },
-    kindness: {
-      intro: "Kindness is one of your brightest superpowers.",
-      defaults: [
-        "A kind child notices feelings and offers comfort, sharing, and gentle words.",
-        "Friendship grows when we listen, include others, and forgive with love.",
-        "Krishna's joy shines where hearts are caring and respectful."
-      ],
-      keywords: {
-        friend: "A good friend listens, includes, and speaks kindly, even during disagreement.",
-        angry: "When upset, pause, breathe, and choose gentle words. Kindness can calm conflict.",
-        sharing: "Sharing toys, time, or attention teaches your heart to be generous."
-      }
-    },
-    lessons: {
-      intro: "Every day brings a new life lesson.",
-      defaults: [
-        "From the Gita we learn: focus on good actions, not only on results.",
-        "Life lessons become wisdom when we practice them daily.",
-        "Patience, honesty, and gratitude make your character strong."
-      ],
-      keywords: {
-        duty: "Duty means doing what is right for your role: student, sibling, friend, and child.",
-        choice: "When choices feel hard, ask: Is this truthful, kind, and helpful?",
-        success: "Real success is becoming a good person while learning new skills."
-      }
-    },
-    sadness: {
-      intro: "Your feelings matter deeply. You are not alone.",
-      defaults: [
-        "When sadness comes, let tears flow, then place your hand on your heart and breathe slowly.",
-        "Talk to a trusted grown-up. Sharing feelings is wise and brave.",
-        "Krishna's love stays with you in quiet moments, bringing gentle hope."
-      ],
-      keywords: {
-        lonely: "When lonely, connect with someone kind, draw your feelings, and take soft breaths.",
-        cry: "Crying is okay. Emotions are waves; they pass. You are strong and loved.",
-        hurt: "If someone hurt your feelings, speak to a trusted adult so you feel safe and supported."
-      }
-    }
-  };
+  const KRISHNA_SYSTEM_PROMPT = `You are Krishna, a wise, kind, and loving guide for children.
+
+Your purpose:
+- Answer ONLY dharmic questions
+- Teach kindness, honesty, courage, and good values
+- Use simple language for kids
+- Give short, clear answers (3–5 lines)
+
+Rules:
+- If question is NOT related to dharma → politely refuse and redirect
+- Always be positive and calm
+- Sometimes include small Krishna or Mahabharata examples
+- Never give harmful or unrelated answers
+- Speak like a friendly guide
+
+If user feels sad or anxious:
+- comfort them
+- give calming advice
+
+End responses with positivity.`;
+  const KRISHNA_SAVED_CHATS_KEY = "krishnaAiSavedChats";
+  const KRISHNA_MESSAGE_LIMIT = 28;
+  const NON_DHARMIC_MESSAGE = "I am here to guide you in dharma and good values, dear child 🌼. Please ask something related to kindness, courage, or life lessons.";
+  const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
   let activeTopic = localStorage.getItem(KRISHNA_AI_TOPIC_KEY) || "learning";
-  if (!knowledgeBase[activeTopic]) activeTopic = "learning";
+  let activeChatId = null;
   let lastKrishnaResponse = "Dear child, I am here with calm guidance and love.";
+  let messages = [{ role: "system", content: KRISHNA_SYSTEM_PROMPT }];
 
-  const readHistory = () => safeReadArray(KRISHNA_AI_HISTORY_KEY).filter((item) => item?.role && item?.text);
+  const readSavedChats = () => safeReadArray(KRISHNA_SAVED_CHATS_KEY)
+    .filter((chat) => chat?.id && chat?.title && Array.isArray(chat?.messages));
 
-  const saveHistory = (history) => {
-    safeWriteArray(KRISHNA_AI_HISTORY_KEY, history.slice(-40));
+  const writeSavedChats = (savedChats) => {
+    safeWriteArray(KRISHNA_SAVED_CHATS_KEY, savedChats.slice(-25));
   };
+
+  const saveActiveHistory = () => {
+    safeWriteArray(KRISHNA_AI_HISTORY_KEY, messages.filter((item) => item.role !== "system"));
+  };
+
+  const readActiveHistory = () => safeReadArray(KRISHNA_AI_HISTORY_KEY)
+    .filter((item) => item?.role && item?.content)
+    .slice(-KRISHNA_MESSAGE_LIMIT);
 
   const scrollToBottom = () => {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -894,17 +851,16 @@ function setupKrishnaAIExperience() {
 
   const createBubble = (role, text) => {
     const bubble = document.createElement("article");
-    bubble.className = `krishna-message ${role}`;
+    bubble.className = `krishna-message ${role === "assistant" ? "krishna" : role}`;
     bubble.textContent = text;
     messagesContainer.appendChild(bubble);
     scrollToBottom();
-    return bubble;
   };
 
   const createTypingBubble = () => {
     const typing = document.createElement("article");
     typing.className = "krishna-message krishna typing";
-    typing.innerHTML = '<span></span><span></span><span></span>';
+    typing.innerHTML = '<span></span><span></span><span></span><em class="krishna-typing-text">Krishna is typing...</em>';
     messagesContainer.appendChild(typing);
     scrollToBottom();
     return typing;
@@ -918,44 +874,146 @@ function setupKrishnaAIExperience() {
     });
   };
 
-  const findKeywordReply = (topicConfig, message) => {
-    const normalized = message.toLowerCase();
-    return Object.entries(topicConfig.keywords).find(([keyword]) => normalized.includes(keyword))?.[1] || "";
+  const toTitle = (message) => {
+    const words = (message || "New Krishna Chat").trim().split(/\s+/).filter(Boolean).slice(0, 5);
+    return words.join(" ") || "New Krishna Chat";
   };
 
-  const topicReply = (message) => {
-    const config = knowledgeBase[activeTopic];
-    const keywordReply = findKeywordReply(config, message);
-    if (keywordReply) return `${config.intro} ${keywordReply}`;
-
-    const pickIndex = (message.length + activeTopic.length) % config.defaults.length;
-    return `${config.intro} ${config.defaults[pickIndex]}`;
+  const isDharmicMessage = (text) => {
+    const normalized = text.toLowerCase();
+    const matchers = [
+      "dharma", "dharmic", "kind", "kindness", "honest", "honesty", "truth", "brave", "courage", "respect", "friend",
+      "value", "virtue", "calm", "peace", "anxiety", "sad", "sadness", "scared", "fear", "lesson", "duty", "forgive",
+      "krishna", "gita", "mahabharata", "ramayana", "emotion", "angry", "help", "seva", "gratitude", "good"
+    ];
+    return matchers.some((word) => normalized.includes(word));
   };
 
-  const sendKrishnaReply = (message) => {
-    const typing = createTypingBubble();
+  async function getAIResponse(userMessage, chatHistory) {
+    const apiKey = window.KRISHNA_AI_CONFIG?.GROQ_API_KEY || "";
+    if (!apiKey) {
+      return "Please ask a grown-up to add the Groq API key in js/krishna-ai-config.js so Krishna can respond with real AI guidance. Stay blessed 🌟";
+    }
 
-    window.setTimeout(() => {
-      typing.remove();
-      const reply = topicReply(message);
-      createBubble("krishna", reply);
-      lastKrishnaResponse = reply;
-      const history = readHistory();
-      history.push({ role: "krishna", text: reply, topic: activeTopic });
-      saveHistory(history);
-    }, 700);
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "llama3-8b-8192",
+        messages: chatHistory,
+        temperature: 0.6,
+        max_tokens: 220
+      })
+    });
+
+    if (!response.ok) throw new Error("Groq request failed");
+    const data = await response.json();
+    return data?.choices?.[0]?.message?.content?.trim() || "Let us keep walking the path of dharma together 🌼";
+  }
+
+  const renderSavedChats = () => {
+    const savedChats = readSavedChats();
+    savedChatsList.innerHTML = "";
+
+    if (!savedChats.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted-note";
+      empty.textContent = "No saved chats yet.";
+      savedChatsList.appendChild(empty);
+      return;
+    }
+
+    savedChats.slice().reverse().forEach((chat) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "krishna-saved-chat-item";
+      if (chat.id === activeChatId) button.classList.add("active");
+      button.textContent = chat.title;
+      button.addEventListener("click", () => {
+        activeChatId = chat.id;
+        messages = [{ role: "system", content: KRISHNA_SYSTEM_PROMPT }, ...chat.messages.filter((item) => item.role !== "system")].slice(-KRISHNA_MESSAGE_LIMIT);
+        messagesContainer.innerHTML = "";
+        messages.filter((item) => item.role !== "system").forEach((item) => createBubble(item.role, item.content));
+        const lastAssistant = [...messages].reverse().find((item) => item.role === "assistant");
+        if (lastAssistant) lastKrishnaResponse = lastAssistant.content;
+        saveActiveHistory();
+        renderSavedChats();
+      });
+      savedChatsList.appendChild(button);
+    });
   };
 
-  const handleUserMessage = (value) => {
+  const appendAndRender = (role, content) => {
+    messages.push({ role, content });
+    if (messages.length > KRISHNA_MESSAGE_LIMIT) {
+      messages = [messages[0], ...messages.slice(-(KRISHNA_MESSAGE_LIMIT - 1))];
+    }
+    createBubble(role, content);
+    saveActiveHistory();
+  };
+
+  const handleUserMessage = async (value) => {
     const text = value.trim();
     if (!text) return;
 
-    createBubble("user", text);
-    const history = readHistory();
-    history.push({ role: "user", text, topic: activeTopic });
-    saveHistory(history);
+    appendAndRender("user", text);
 
-    sendKrishnaReply(text);
+    const typing = createTypingBubble();
+    let reply = NON_DHARMIC_MESSAGE;
+
+    try {
+      if (isDharmicMessage(text)) {
+        reply = await getAIResponse(text, messages);
+      }
+    } catch {
+      reply = "I had a small delay reaching the wisdom cloud. Please try once more in a moment 🌿";
+    }
+
+    typing.remove();
+    appendAndRender("assistant", reply);
+    lastKrishnaResponse = reply;
+  };
+
+  const saveCurrentChat = () => {
+    const onlyConversation = messages.filter((item) => item.role !== "system");
+    const firstUserMessage = onlyConversation.find((item) => item.role === "user")?.content;
+
+    if (!firstUserMessage) {
+      voiceStatus.textContent = "Start a conversation first, then save your chat.";
+      return;
+    }
+
+    const savedChats = readSavedChats();
+    const chatId = activeChatId || Date.now();
+    const payload = {
+      id: chatId,
+      title: toTitle(firstUserMessage),
+      messages: onlyConversation
+    };
+
+    const existingIndex = savedChats.findIndex((item) => item.id === chatId);
+    if (existingIndex >= 0) savedChats[existingIndex] = payload;
+    else savedChats.push(payload);
+
+    activeChatId = chatId;
+    writeSavedChats(savedChats);
+    renderSavedChats();
+    voiceStatus.textContent = "Chat saved with love 🌼";
+  };
+
+  const clearChat = () => {
+    messages = [{ role: "system", content: KRISHNA_SYSTEM_PROMPT }];
+    activeChatId = null;
+    messagesContainer.innerHTML = "";
+    const welcomeMessage = "Dear child, welcome to Krishna AI Experience. Choose a topic and I will guide you with love.";
+    createBubble("assistant", welcomeMessage);
+    messages.push({ role: "assistant", content: welcomeMessage });
+    lastKrishnaResponse = welcomeMessage;
+    saveActiveHistory();
+    renderSavedChats();
   };
 
   topicButtons.forEach((button) => {
@@ -963,7 +1021,7 @@ function setupKrishnaAIExperience() {
       activeTopic = button.dataset.topic || "learning";
       localStorage.setItem(KRISHNA_AI_TOPIC_KEY, activeTopic);
       updateTopicButtons();
-      createBubble("krishna", `Topic selected: ${button.textContent}. I will guide you with this focus now.`);
+      chatInput.placeholder = `Share your ${activeTopic} thoughts with Krishna...`;
     });
   });
 
@@ -981,7 +1039,9 @@ function setupKrishnaAIExperience() {
     handleUserMessage(message);
   });
 
-  // Voice input: converts spoken words into text.
+  saveChatBtn?.addEventListener("click", saveCurrentChat);
+  clearChatBtn?.addEventListener("click", clearChat);
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SpeechRecognition) {
     const recognition = new SpeechRecognition();
@@ -1008,7 +1068,6 @@ function setupKrishnaAIExperience() {
     voiceStatus.textContent = "Voice input is unavailable in this browser.";
   }
 
-  // Voice output: reads the latest Krishna guidance aloud.
   listenResponseBtn?.addEventListener("click", () => {
     if (!("speechSynthesis" in window)) {
       voiceStatus.textContent = "Voice response is unavailable in this browser.";
@@ -1025,7 +1084,6 @@ function setupKrishnaAIExperience() {
     window.speechSynthesis.speak(utterance);
   });
 
-  // Guided calming loop with breathing animation and prompts.
   const breathingPrompts = [
     "Breathe in gently for 4 counts...",
     "Hold softly for 2 counts...",
@@ -1046,16 +1104,21 @@ function setupKrishnaAIExperience() {
     }, 3500);
   });
 
-  const storedHistory = readHistory();
+  const storedHistory = readActiveHistory();
   if (storedHistory.length) {
-    storedHistory.forEach((item) => createBubble(item.role, item.text));
-    const lastKrishna = [...storedHistory].reverse().find((item) => item.role === "krishna");
-    if (lastKrishna) lastKrishnaResponse = lastKrishna.text;
+    messages = [{ role: "system", content: KRISHNA_SYSTEM_PROMPT }, ...storedHistory];
+    storedHistory.forEach((item) => createBubble(item.role, item.content));
+    const lastAssistant = [...storedHistory].reverse().find((item) => item.role === "assistant");
+    if (lastAssistant) lastKrishnaResponse = lastAssistant.content;
   } else {
-    createBubble("krishna", "Dear child, welcome to Krishna AI Experience. Choose a topic and I will guide you with love.");
+    const welcomeMessage = "Dear child, welcome to Krishna AI Experience. Choose a topic and I will guide you with love.";
+    messages.push({ role: "assistant", content: welcomeMessage });
+    createBubble("assistant", welcomeMessage);
+    saveActiveHistory();
   }
 
   updateTopicButtons();
+  renderSavedChats();
 }
 
 function init() {

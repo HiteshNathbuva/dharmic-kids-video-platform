@@ -41,26 +41,39 @@
             <h2>Talk with Krishna</h2>
           </div>
 
-          <div id="topicButtons" class="krishna-topic-grid" aria-label="Krishna guidance topics">
-            <button type="button" class="krishna-topic-btn active" data-topic="learning">🧠 Learning Dharma</button>
-            <button type="button" class="krishna-topic-btn" data-topic="anxiety">😌 Reduce Anxiety</button>
-            <button type="button" class="krishna-topic-btn" data-topic="courage">💪 Courage & Confidence</button>
-            <button type="button" class="krishna-topic-btn" data-topic="kindness">❤️ Kindness & Friendship</button>
-            <button type="button" class="krishna-topic-btn" data-topic="lessons">📖 Life Lessons</button>
-            <button type="button" class="krishna-topic-btn" data-topic="sadness">😔 Sadness / Emotional Help</button>
-          </div>
+          <div class="krishna-chat-shell">
+            <aside class="krishna-conversation-sidebar about-block">
+              <div class="krishna-sidebar-head">
+                <h3>Saved Chats</h3>
+                <button id="saveChatBtn" type="button" class="story-btn">Save Chat</button>
+              </div>
+              <div id="savedChatsList" class="krishna-saved-chats" aria-live="polite"></div>
+            </aside>
 
-          <div id="krishnaChatMessages" class="krishna-chat-messages-panel" aria-live="polite"></div>
+            <div class="krishna-main-chat">
+              <div id="topicButtons" class="krishna-topic-grid" aria-label="Krishna guidance topics">
+                <button type="button" class="krishna-topic-btn active" data-topic="learning">🧠 Learning Dharma</button>
+                <button type="button" class="krishna-topic-btn" data-topic="anxiety">😌 Reduce Anxiety</button>
+                <button type="button" class="krishna-topic-btn" data-topic="courage">💪 Courage & Confidence</button>
+                <button type="button" class="krishna-topic-btn" data-topic="kindness">❤️ Kindness & Friendship</button>
+                <button type="button" class="krishna-topic-btn" data-topic="lessons">📖 Life Lessons</button>
+                <button type="button" class="krishna-topic-btn" data-topic="sadness">😔 Sadness / Emotional Help</button>
+              </div>
 
-          <div id="krishnaQuickPrompts" class="krishna-quick-prompts">
-            <button type="button" class="krishna-prompt-btn">I feel scared</button>
-            <button type="button" class="krishna-prompt-btn">How to be brave?</button>
-            <button type="button" class="krishna-prompt-btn">Why should I tell truth?</button>
-            <button type="button" class="krishna-prompt-btn">How to help others?</button>
+              <div id="krishnaChatMessages" class="krishna-chat-messages-panel" aria-live="polite"></div>
+
+              <div id="krishnaQuickPrompts" class="krishna-quick-prompts">
+                <button type="button" class="krishna-prompt-btn">I feel scared</button>
+                <button type="button" class="krishna-prompt-btn">How to be brave?</button>
+                <button type="button" class="krishna-prompt-btn">Why should I tell truth?</button>
+                <button type="button" class="krishna-prompt-btn">How to help others?</button>
+              </div>
+            </div>
           </div>
 
           <form id="krishnaChatForm" class="krishna-chat-compose">
             <input id="krishnaChatInput" type="text" maxlength="260" placeholder="Share your thoughts with Krishna..." />
+            <button id="clearChatBtn" type="button" class="story-btn" aria-label="Clear chat">🗑️ Clear Chat</button>
             <button id="voiceInputBtn" type="button" class="story-btn" aria-label="Use voice input">🎤</button>
             <button type="submit" class="auth-btn">Send</button>
           </form>
@@ -89,6 +102,7 @@
     <p>Made with ❤️ for little learners of Dharma.</p>
   </footer>
 
+  <script src="js/krishna-ai-config.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>

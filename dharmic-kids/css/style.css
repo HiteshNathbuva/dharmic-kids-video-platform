@@ -577,6 +577,7 @@ footer { text-align: center; padding: 1rem; color: #d4ddff; }
 
 @media (max-width: 560px) {
   .profile-grid { grid-template-columns: 1fr; }
+  .krishna-chat-shell { grid-template-columns: 1fr; }
   .krishna-topic-grid,
   .krishna-quick-prompts,
   .krishna-chat-compose { grid-template-columns: 1fr; }
@@ -772,6 +773,62 @@ footer { text-align: center; padding: 1rem; color: #d4ddff; }
   gap: 0.8rem;
 }
 
+.krishna-chat-shell {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.38fr) minmax(0, 1fr);
+  gap: 0.72rem;
+  align-items: start;
+}
+
+.krishna-conversation-sidebar {
+  padding: 0.7rem;
+  border-radius: 14px;
+  border: 1px solid rgba(146, 165, 255, 0.2);
+  background: rgba(110, 134, 255, 0.1);
+}
+
+.krishna-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+}
+
+.krishna-sidebar-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.krishna-saved-chats {
+  max-height: 360px;
+  overflow-y: auto;
+  display: grid;
+  gap: 0.36rem;
+}
+
+.krishna-saved-chat-item {
+  text-align: left;
+  border: 1px solid rgba(151, 170, 255, 0.28);
+  background: rgba(110, 134, 255, 0.14);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.48rem 0.56rem;
+  cursor: pointer;
+  font-size: 0.84rem;
+}
+
+.krishna-saved-chat-item:hover,
+.krishna-saved-chat-item.active {
+  background: linear-gradient(125deg, rgba(127, 134, 255, 0.36), rgba(102, 213, 255, 0.26));
+  border-color: rgba(176, 196, 255, 0.44);
+}
+
+.krishna-main-chat {
+  display: grid;
+  gap: 0.8rem;
+}
+
 .krishna-topic-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -856,7 +913,7 @@ footer { text-align: center; padding: 1rem; color: #d4ddff; }
 
 .krishna-chat-compose {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   gap: 0.45rem;
 }
 
@@ -882,6 +939,11 @@ footer { text-align: center; padding: 1rem; color: #d4ddff; }
 .krishna-listen-card,
 .relax-card {
   padding: 1rem;
+}
+
+.krishna-typing-text {
+  font-size: 0.82rem;
+  color: var(--muted);
 }
 
 .muted-note {
