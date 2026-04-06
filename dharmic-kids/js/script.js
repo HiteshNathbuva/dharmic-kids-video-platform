@@ -890,9 +890,9 @@ End responses with positivity.`;
   };
 
   async function getAIResponse(userMessage, chatHistory) {
-    const apiKey = window.KRISHNA_AI_CONFIG?.GROQ_API_KEY || "";
+    const apiKey = window.KRISHNA_AI_CONFIG?.GROQ_API_KEY;
     if (!apiKey) {
-      return "Please ask a grown-up to add the Groq API key in js/krishna-ai-config.js so Krishna can respond with real AI guidance. Stay blessed 🌟";
+      return "Please ask a grown-up to add the API key so Krishna can guide you.";
     }
 
     const response = await fetch(API_URL, {
@@ -969,7 +969,7 @@ End responses with positivity.`;
         reply = await getAIResponse(text, messages);
       }
     } catch {
-      reply = "I had a small delay reaching the wisdom cloud. Please try once more in a moment 🌿";
+      reply = "I am having a small delay reaching wisdom. Please try again 🌿";
     }
 
     typing.remove();
