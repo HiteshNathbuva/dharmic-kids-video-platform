@@ -5,11 +5,46 @@
 */
 
 const categories = [
-  { id: "krishna", name: "Krishna Stories", icon: "🦚", thumb: "images/thumbnails/krishna.webp", illustration: "images/thumbnails/krishna.webp" },
-  { id: "hanuman", name: "Hanuman Stories", icon: "🐒", thumb: "images/thumbnails/ShriHanuman.webp", illustration: "images/thumbnails/ShriHanuman.webp" },
-  { id: "ramayana", name: "Ramayana Stories", icon: "🏹", thumb: "images/thumbnails/ShriRamayan.webp", illustration: "images/thumbnails/ShriRamayan.webp" },
-  { id: "mahabharata", name: "Mahabharata Stories", icon: "⚔️", thumb: "images/thumbnails/ShriMahabharat.webp", illustration: "images/thumbnails/ShriMahabharat.webp" },
-  { id: "moral", name: "Moral Stories", icon: "🌟", thumb: "images/thumbnails/Children.webp", illustration: "images/thumbnails/Children.webp" }
+  {
+    id: "krishna",
+    name: "Krishna Stories",
+    icon: "🦚",
+    thumb: "images/thumbnails/krishna.webp",
+    illustration: "images/thumbnails/krishna.webp",
+    description: "Playful tales of Krishna teaching love, joy, and devotion through gentle wisdom."
+  },
+  {
+    id: "hanuman",
+    name: "Hanuman Stories",
+    icon: "🐒",
+    thumb: "images/thumbnails/ShriHanuman.webp",
+    illustration: "images/thumbnails/ShriHanuman.webp",
+    description: "Adventures of Hanuman that inspire courage, faith, and selfless service."
+  },
+  {
+    id: "ramayana",
+    name: "Ramayana Stories",
+    icon: "🏹",
+    thumb: "images/thumbnails/ShriRamayan.webp",
+    illustration: "images/thumbnails/ShriRamayan.webp",
+    description: "Sacred stories of Rama and Sita that guide children toward dharma and respect."
+  },
+  {
+    id: "mahabharata",
+    name: "Mahabharata Stories",
+    icon: "⚔️",
+    thumb: "images/thumbnails/ShriMahabharat.webp",
+    illustration: "images/thumbnails/ShriMahabharat.webp",
+    description: "Epic lessons on truth, duty, and right action from the Mahabharata."
+  },
+  {
+    id: "moral",
+    name: "Moral Stories",
+    icon: "🌟",
+    thumb: "images/thumbnails/Children.webp",
+    illustration: "images/thumbnails/Children.webp",
+    description: "Simple everyday stories that build kindness, honesty, and good habits."
+  }
 ];
 
 const videos = [
@@ -369,7 +404,7 @@ function buildCategoryCards() {
     <article class="category-card reveal-on-scroll" style="animation-delay:${index * 0.08}s">
       <img class="category-illustration" src="${cat.illustration}" alt="${cat.name} cute cartoon illustration" loading="lazy" />
       <h3>${cat.name}</h3>
-      <p>Animated dharmic stories for kids.</p>
+      <p>${cat.description}</p>
     </article>
   `).join("");
 }
@@ -891,27 +926,38 @@ End responses with positivity.`;
 
   async function getAIResponse(userMessage, chatHistory) {
     const apiKey = window.KRISHNA_AI_CONFIG?.GROQ_API_KEY;
+    console.log("Krishna AI key loaded:", Boolean(apiKey));
     if (!apiKey) {
-      return "Please ask a grown-up to add the API key so Krishna can guide you.";
+      return "API key not found. Please add it in krishna-ai-config.js";
     }
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "llama3-8b-8192",
-        messages: chatHistory,
-        temperature: 0.6,
-        max_tokens: 220
-      })
-    });
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "llama3-8b-8192",
+          messages: chatHistory,
+          temperature: 0.6,
+          max_tokens: 220
+        })
+      });
 
-    if (!response.ok) throw new Error("Groq request failed");
-    const data = await response.json();
-    return data?.choices?.[0]?.message?.content?.trim() || "Let us keep walking the path of dharma together 🌼";
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Groq request failed (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+      return data?.choices?.[0]?.message?.content?.trim() || "Let us keep walking the path of dharma together 🌼";
+    } catch (error) {
+      console.error("Krishna AI request error:", error);
+      throw error;
+    }
   }
 
   const renderSavedChats = () => {
@@ -969,7 +1015,7 @@ End responses with positivity.`;
         reply = await getAIResponse(text, messages);
       }
     } catch {
-      reply = "I am having a small delay reaching wisdom. Please try again 🌿";
+      reply = "I could not reach Krishna wisdom right now. Please try again 🌿";
     }
 
     typing.remove();
