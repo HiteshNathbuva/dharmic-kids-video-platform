@@ -11,7 +11,7 @@ const categories = [
     icon: "🦚",
     thumb: "images/thumbnails/krishna.webp",
     illustration: "images/thumbnails/krishna.webp",
-    description: "Playful tales of Krishna teaching love, joy, and devotion through gentle wisdom."
+    description: "Playful and divine stories of Krishna’s childhood and wisdom."
   },
   {
     id: "hanuman",
@@ -19,7 +19,7 @@ const categories = [
     icon: "🐒",
     thumb: "images/thumbnails/ShriHanuman.webp",
     illustration: "images/thumbnails/ShriHanuman.webp",
-    description: "Adventures of Hanuman that inspire courage, faith, and selfless service."
+    description: "Brave adventures of Hanuman showing strength and devotion."
   },
   {
     id: "ramayana",
@@ -27,7 +27,7 @@ const categories = [
     icon: "🏹",
     thumb: "images/thumbnails/ShriRamayan.webp",
     illustration: "images/thumbnails/ShriRamayan.webp",
-    description: "Sacred stories of Rama and Sita that guide children toward dharma and respect."
+    description: "Epic journey of Lord Rama teaching truth and duty."
   },
   {
     id: "mahabharata",
@@ -35,7 +35,7 @@ const categories = [
     icon: "⚔️",
     thumb: "images/thumbnails/ShriMahabharat.webp",
     illustration: "images/thumbnails/ShriMahabharat.webp",
-    description: "Epic lessons on truth, duty, and right action from the Mahabharata."
+    description: "Great stories of courage, dharma, and life lessons."
   },
   {
     id: "moral",
@@ -54,8 +54,20 @@ const videos = [
   { id: "Z9AqQ3fmbJY", category: "mahabharata", title: "Krishna's Wisdom", desc: "An introduction to Krishna's guidance in difficult times.", thumb: "images/thumbnails/krishna.webp" },
   { id: "ZL8M4m6nR8Q", category: "krishna", title: "Little Krishna and Butter", desc: "Fun childhood story about Krishna's playful side.", thumb: "images/thumbnails/krishna.webp" },
   { id: "vQ7Qf4r2k7s", category: "krishna", title: "Kaliya Mardan", desc: "See how Krishna protects friends with courage.", thumb: "images/thumbnails/krishna.webp" },
+  { id: "hG1uV6m9kQ8", category: "krishna", title: "Govardhan Story", desc: "Krishna teaches villagers to trust dharma and protect nature with faith.", thumb: "images/thumbnails/krishna.webp" },
+  { id: "aL4mT9wQ2nR", category: "krishna", title: "Krishna and Sudama", desc: "A touching friendship story showing humility, love, and gratitude.", thumb: "images/thumbnails/krishna.webp" },
+  { id: "pD8sN3xL7fY", category: "krishna", title: "Krishna Lifting Govardhan", desc: "The young Lord lifts a mountain to shelter everyone from heavy rains.", thumb: "images/thumbnails/krishna.webp" },
   { id: "CGJz8f5n7AA", category: "hanuman", title: "Birth of Hanuman", desc: "A colorful story of Hanuman's divine birth.", thumb: "images/thumbnails/ShriHanuman.webp" },
   { id: "L8M9eN6xYxY", category: "hanuman", title: "Hanuman Lifts Mountain", desc: "Sanjeevani adventure with strength and devotion.", thumb: "images/thumbnails/ShriHanuman.webp" },
+  { id: "kS5vB2qM9cH", category: "hanuman", title: "Hanuman and Sun", desc: "Little Hanuman leaps toward the sun, showing fearless energy and wonder.", thumb: "images/thumbnails/ShriHanuman.webp" },
+  { id: "jR7nW4dP1xZ", category: "hanuman", title: "Hanuman meets Rama", desc: "A beautiful meeting where devotion begins and destiny unfolds.", thumb: "images/thumbnails/ShriHanuman.webp" },
+  { id: "uQ6mE3tV8bK", category: "hanuman", title: "Hanuman in Lanka", desc: "Hanuman enters Lanka bravely to find Sita and serve Rama's mission.", thumb: "images/thumbnails/ShriHanuman.webp" },
+  { id: "nC2yH8pL5mJ", category: "ramayana", title: "Rama Exile", desc: "Rama accepts exile with calm obedience, honoring truth and duty.", thumb: "images/thumbnails/ShriRamayan.webp" },
+  { id: "qM9tK4vB7dF", category: "ramayana", title: "Sita Haran", desc: "The turning point where Sita is taken, calling for courage and resolve.", thumb: "images/thumbnails/ShriRamayan.webp" },
+  { id: "sP3wL6nC1rT", category: "ramayana", title: "Bridge to Lanka", desc: "Vanara heroes build a mighty bridge through teamwork and devotion.", thumb: "images/thumbnails/ShriRamayan.webp" },
+  { id: "bX4dR7mK2qN", category: "mahabharata", title: "Bhishma Vow", desc: "Bhishma's great promise shows sacrifice, discipline, and responsibility.", thumb: "images/thumbnails/ShriMahabharat.webp" },
+  { id: "tV8cJ5pD3mQ", category: "mahabharata", title: "Arjuna and Krishna", desc: "Krishna guides Arjuna to choose righteousness with a clear mind.", thumb: "images/thumbnails/ShriMahabharat.webp" },
+  { id: "yN1kF6sH4wR", category: "mahabharata", title: "Abhimanyu Story", desc: "Young Abhimanyu's bravery teaches dedication and warrior spirit.", thumb: "images/thumbnails/ShriMahabharat.webp" },
   { id: "Yx8Wj5b8zEo", category: "moral", title: "Speak the Truth", desc: "A short moral tale on honesty and kindness.", thumb: "images/thumbnails/Children.webp" },
   { id: "rj4X8mV8S5w", category: "moral", title: "Helping Friends", desc: "Why teamwork and compassion make us stronger.", thumb: "images/thumbnails/Children.webp" }
 ];
@@ -437,6 +449,8 @@ function buildCategoryVideoSections(filterText = "") {
 
     const section = document.createElement("section");
     section.className = "video-row-section reveal-on-scroll";
+    section.style.maxWidth = "1160px";
+    section.style.marginInline = "auto";
     section.innerHTML = `
       <div class="video-row-header">
         <h2>${cat.icon} ${cat.name}</h2>
@@ -464,9 +478,21 @@ function attachRowScrollHandlers() {
     const row = shell.querySelector(".video-row");
     const prev = shell.querySelector(".prev");
     const next = shell.querySelector(".next");
+    if (!row || !prev || !next) return;
 
-    prev?.addEventListener("click", () => row.scrollBy({ left: -340, behavior: "smooth" }));
-    next?.addEventListener("click", () => row.scrollBy({ left: 340, behavior: "smooth" }));
+    const updateButtons = () => {
+      const maxScrollLeft = Math.max(0, row.scrollWidth - row.clientWidth);
+      const leftEdge = row.scrollLeft <= 2;
+      const rightEdge = row.scrollLeft >= maxScrollLeft - 2;
+      prev.disabled = leftEdge;
+      next.disabled = rightEdge;
+    };
+
+    prev.addEventListener("click", () => row.scrollBy({ left: -340, behavior: "smooth" }));
+    next.addEventListener("click", () => row.scrollBy({ left: 340, behavior: "smooth" }));
+    row.addEventListener("scroll", updateButtons, { passive: true });
+    window.addEventListener("resize", updateButtons);
+    window.requestAnimationFrame(updateButtons);
   });
 }
 
@@ -926,9 +952,11 @@ End responses with positivity.`;
 
   async function getAIResponse(userMessage, chatHistory) {
     const apiKey = window.KRISHNA_AI_CONFIG?.GROQ_API_KEY;
-    console.log("Krishna AI key loaded:", Boolean(apiKey));
     if (!apiKey) {
-      return "API key not found. Please add it in krishna-ai-config.js";
+      return {
+        ok: false,
+        reply: "Krishna needs blessing (API key). Please configure."
+      };
     }
 
     try {
@@ -953,12 +981,34 @@ End responses with positivity.`;
       }
 
       const data = await response.json();
-      return data?.choices?.[0]?.message?.content?.trim() || "Let us keep walking the path of dharma together 🌼";
+      const content = data?.choices?.[0]?.message?.content?.trim();
+      return {
+        ok: true,
+        reply: content || "Let us keep walking the path of dharma together 🌼"
+      };
     } catch (error) {
       console.error("Krishna AI request error:", error);
-      throw error;
+      return {
+        ok: false,
+        reply: "",
+        error
+      };
     }
   }
+
+  const buildDharmicFallback = (message) => {
+    const normalized = message.toLowerCase();
+    if (normalized.includes("scared") || normalized.includes("fear") || normalized.includes("anxiety")) {
+      return "Dear child, when fear visits, take a slow breath and remember Krishna is with you. Speak truth, stay kind, and take one brave step at a time 🌿";
+    }
+    if (normalized.includes("sad") || normalized.includes("cry") || normalized.includes("alone")) {
+      return "Dear child, your heart is precious. Share your feelings with someone you trust, chant a small prayer, and do one kind action today—light returns through love 🌼";
+    }
+    if (normalized.includes("angry") || normalized.includes("fight")) {
+      return "Pause, breathe, and choose gentle words. Real strength is self-control. Krishna teaches us to protect peace first, then act with wisdom 🕊️";
+    }
+    return "Dear child, choose truth, kindness, and courage in this moment. Do your duty calmly, help someone nearby, and keep faith—this is the path of dharma ✨";
+  };
 
   const renderSavedChats = () => {
     const savedChats = readSavedChats();
@@ -1012,10 +1062,14 @@ End responses with positivity.`;
 
     try {
       if (isDharmicMessage(text)) {
-        reply = await getAIResponse(text, messages);
+        const aiResult = await getAIResponse(text, messages);
+        reply = aiResult.reply || buildDharmicFallback(text);
+        if (!aiResult.ok && aiResult.error) {
+          console.warn("Using Krishna AI fallback response due to API issue.");
+        }
       }
     } catch {
-      reply = "I could not reach Krishna wisdom right now. Please try again 🌿";
+      reply = buildDharmicFallback(text);
     }
 
     typing.remove();
